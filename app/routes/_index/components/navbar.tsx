@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Github } from "lucide-react";
 import { Link } from "react-router";
 
@@ -15,12 +15,12 @@ export default function Navbar() {
           </Link> */}
         </nav>
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="sm">
+          <Link to="/sign-in" className={buttonVariants({ variant: "ghost" })}>
             Sign in
-          </Button>
-          <Button variant="ghost" size="sm">
+          </Link>
+          <Link to="/sign-up" className={buttonVariants({ variant: "ghost" })}>
             Sign up
-          </Button>
+          </Link>
         </div>
       </div>
     </header>
