@@ -24,9 +24,13 @@ export default function Home() {
           <div className="absolute bottom-0 left-0 h-[500px] w-[500px] bg-primary/10 blur-[100px]" />
         </div>
 
-        <div>
-          <Navbar />
-          <Hero />
+        <div className="min-h-screen flex flex-col">
+          <div>
+            <Navbar />
+          </div>
+          <div className="flex-1 flex items-center justify-center">
+            <Hero />
+          </div>
           {/* <Features /> */}
           {/* <CTA /> */}
           {/* <Footer /> */}
