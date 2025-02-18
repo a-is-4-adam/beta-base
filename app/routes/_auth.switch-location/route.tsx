@@ -12,21 +12,23 @@ import { createServerValidate } from "@/lib/createServerValidate";
 import { typographyVariants } from "@/components/ui/typography";
 import { CheckIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getClerkClient, getUserId } from "@/server/clerk";
+import {
+  getClerkClient,
+  getUserId,
+  getUserPublicMetadata,
+} from "@/server/clerk";
 
 export async function loader(args: Route.LoaderArgs) {
-  const userId = await getUserId(args);
-
-  const clerkClient = getClerkClient();
-
-  const user = await clerkClient.users.getUser(userId);
-  const publicMetadata = user.publicMetadata;
-
-  const locations = await prismaClientHttp.location.findMany();
+  const [publicMetadata, locations] = await Promise.all([
+    getUserPublicMetadata(args),
+    prismaClientHttp.location.findMany(),
+  ]);
 
   const organisationIdsFromLocations = locations.map(
     (location) => location.organizationId
   );
+
+  const clerkClient = getClerkClient();
 
   const allOrganisations = await clerkClient.organizations.getOrganizationList({
     organizationId: organisationIdsFromLocations,
@@ -69,6 +71,20 @@ export async function action(args: Route.ActionArgs) {
 
   if (!result.success) {
     return result.errors.formState;
+  }
+
+  const location = await prismaClientHttp.location.findUnique({
+    where: { id: result.data.id },
+  });
+
+  if (!location) {
+    return {
+      errorMap: {
+        onServer: "Location not found",
+      },
+      values: result.data,
+      errors: ["Location not found"],
+    };
   }
 
   const userId = await getUserId(args);

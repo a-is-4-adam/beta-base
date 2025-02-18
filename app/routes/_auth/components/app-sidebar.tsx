@@ -42,7 +42,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <Link to="/log">
+                <Link to="/dashboard">
                   <span>Log</span>
                 </Link>
               </SidebarMenuButton>
