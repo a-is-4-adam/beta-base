@@ -13,6 +13,11 @@ async function main() {
       slug: "enoggra",
       organizationId: "org_2rcDzOAeZ1khUtDYZb4QsyP9X6Y",
     },
+    {
+      name: "Morningside",
+      slug: "morningside",
+      organizationId: "org_2rcDzOAeZ1khUtDYZb4QsyP9X6Y",
+    },
   ];
 
   await prisma.location.createMany({
