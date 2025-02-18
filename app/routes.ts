@@ -10,6 +10,7 @@ export default [
 
   layout("routes/_auth/route.tsx", [
     route("dashboard", "routes/_auth.dashboard/route.tsx"),
+    route("switch-location", "routes/_auth.switch-location/route.tsx"),
   ]),
 
   layout("routes/_pre-auth/route.tsx", [
