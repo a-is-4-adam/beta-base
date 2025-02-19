@@ -85,7 +85,6 @@ const DialogContent = ({
   side,
   role,
   closeButton = true,
-
   ...props
 }: DialogContentProps) => (
   <AriaModal

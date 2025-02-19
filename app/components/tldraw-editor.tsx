@@ -21,7 +21,7 @@ const customShapesUtils = [PolygonShapeUtil, RouteShapeUtil];
 const customTools = [MemberTool];
 
 type TldrawEditorProps = {
-  map: string | undefined;
+  map: Record<string, unknown> | undefined;
 } & Partial<Pick<React.ComponentPropsWithoutRef<typeof Tldraw>, "onMount">>;
 
 const components: TLComponents = {
@@ -41,7 +41,7 @@ export function Map({ map, onMount }: TldrawEditorProps) {
     console.log("creating store");
     return createTLStore({
       shapeUtils: [...defaultShapeUtils, ...customShapesUtils],
-      snapshot: map as Partial<TLEditorSnapshot>,
+      snapshot: map,
     });
   }, [map]);
 

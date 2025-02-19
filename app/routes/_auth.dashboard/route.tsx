@@ -5,6 +5,8 @@ import { redirect } from "react-router";
 import { Map } from "@/components/tldraw-editor";
 import "tldraw/tldraw.css";
 import type { Prisma } from "@prisma/client";
+import { DrawerLayout } from "@/components/drawer-layout";
+import { Button } from "@/components/ui/button";
 
 export async function loader(args: Route.LoaderArgs) {
   const publicMetadata = await getUserPublicMetadata(args);
@@ -32,8 +34,26 @@ export default function Route({ loaderData }: Route.ComponentProps) {
     : undefined;
 
   return (
-    <div className="relative h-full w-full">
-      <Map map={map} />
+    <>
+      <div className="relative h-full -mx-4 w-[calc(100%+var(--spacing)*8)]">
+        <Map map={map} />
+      </div>
+      <DrawerLayout preview={<DrawerPreview />}>
+        <DrawerPreview />
+      </DrawerLayout>
+    </>
+  );
+}
+
+function DrawerPreview() {
+  return (
+    <div className="flex gap-2">
+      <Button variant="outline" className="w-full">
+        Send
+      </Button>
+      <Button variant="outline" className="w-full">
+        Flash
+      </Button>
     </div>
   );
 }

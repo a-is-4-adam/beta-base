@@ -28,7 +28,9 @@ export function TldrawShapeIndicators() {
   );
 
   selectedShapes.forEach((shape) => {
-    indicatorsToShow.add(shape.id);
+    if (shape.type !== "polygon-shape") {
+      indicatorsToShow.add(shape.id);
+    }
   });
 
   if (hoveredShape) {
