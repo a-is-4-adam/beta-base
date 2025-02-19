@@ -1,0 +1,19 @@
+diff --git a/node_modules/@tldraw/editor/dist-esm/lib/utils/browserCanvasMaxSize.mjs b/node_modules/@tldraw/editor/dist-esm/lib/utils/browserCanvasMaxSize.mjs
+index 4bd5bdc..a4e689e 100644
+--- a/node_modules/@tldraw/editor/dist-esm/lib/utils/browserCanvasMaxSize.mjs
++++ b/node_modules/@tldraw/editor/dist-esm/lib/utils/browserCanvasMaxSize.mjs
+@@ -1,4 +1,5 @@
+-import canvasSize from "canvas-size";
++import * as canvasSizePkg from "canvas-size";
++
+ let maxSizePromise = null;
+ function getBrowserCanvasMaxSize() {
+   if (!maxSizePromise) {
+@@ -7,6 +8,7 @@ function getBrowserCanvasMaxSize() {
+   return maxSizePromise;
+ }
+ async function calculateBrowserCanvasMaxSize() {
++  const { canvasSize } = canvasSizePkg;
+   const maxWidth = await canvasSize.maxWidth({ usePromise: true });
+   const maxHeight = await canvasSize.maxHeight({ usePromise: true });
+   const maxArea = await canvasSize.maxArea({ usePromise: true });

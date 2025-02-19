@@ -6,7 +6,8 @@
     "build": "react-router build",
     "dev": "react-router dev",
     "start": "react-router-serve ./build/server/index.js",
-    "typecheck": "react-router typegen && tsc"
+    "typecheck": "react-router typegen && tsc",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@clerk/react-router": "^1.0.8",
@@ -22,6 +23,7 @@
     "decode-formdata": "^0.8.0",
     "isbot": "^5.1.17",
     "lucide-react": "^0.475.0",
+    "patch-package": "^8.0.0",
     "prisma": "^6.3.1",
     "react": "^19.0.0",
     "react-aria-components": "^1.6.0",
@@ -29,6 +31,7 @@
     "react-router": "^7.1.5",
     "tailwind-merge": "^3.0.1",
     "tailwindcss-animate": "^1.0.7",
+    "tldraw": "^3.8.1",
     "ws": "^8.18.0",
     "zod": "^3.24.2"
   },
