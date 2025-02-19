@@ -1,5 +1,5 @@
 import { StateNode, type TLStateNodeConstructor, Vec } from "@tldraw/editor";
-// import { isRouteShape } from "@/components/tldraw/shapes/route-shape";
+import { isRouteShape } from "@/components/tldraw/shape-utils/route-shape-util";
 
 export class Dragging extends StateNode {
   static override id = "dragging";
@@ -98,8 +98,7 @@ export class Idle extends StateNode {
       hitInside: true,
     });
 
-    // if (existingShapes.some(isRouteShape)) {
-    if (false) {
+    if (existingShapes.some(isRouteShape)) {
       this.editor.setCursor({ type: "default" });
     } else {
       this.editor.setCursor({ type: "grab" });

@@ -5,17 +5,23 @@ import {
   type TLComponents,
   type TLShape,
   type TLGeoShape,
+  type TLEditorSnapshot,
+  createShapeId,
 } from "tldraw";
 import { PolygonShapeUtil } from "./tldraw/shape-utils/polygon-shape-util";
 import React from "react";
 import { TldrawShapeIndicators } from "@/components/tldraw/shape-indicators";
 import { MemberTool } from "@/components/tldraw/tools/member-tool";
+import {
+  ROUTE_SHAPE,
+  RouteShapeUtil,
+} from "./tldraw/shape-utils/route-shape-util";
 
-const customShapesUtils = [PolygonShapeUtil];
+const customShapesUtils = [PolygonShapeUtil, RouteShapeUtil];
 const customTools = [MemberTool];
 
 type TldrawEditorProps = {
-  map: Record<string, unknown> | undefined;
+  map: string | undefined;
 } & Partial<Pick<React.ComponentPropsWithoutRef<typeof Tldraw>, "onMount">>;
 
 const components: TLComponents = {
@@ -31,14 +37,13 @@ const components: TLComponents = {
 };
 
 export function Map({ map, onMount }: TldrawEditorProps) {
-  const store = React.useMemo(
-    () =>
-      createTLStore({
-        shapeUtils: [...defaultShapeUtils, ...customShapesUtils],
-        snapshot: map,
-      }),
-    []
-  );
+  const store = React.useMemo(() => {
+    console.log("creating store");
+    return createTLStore({
+      shapeUtils: [...defaultShapeUtils, ...customShapesUtils],
+      snapshot: map as Partial<TLEditorSnapshot>,
+    });
+  }, [map]);
 
   return (
     <div className="absolute inset-0 [&_*.tl-background]:bg-white border-x border-zinc-950/5 ">
@@ -75,6 +80,18 @@ export function Map({ map, onMount }: TldrawEditorProps) {
               },
             });
           }
+          const routeId = createShapeId("route");
+          editor.createShapes([
+            {
+              id: routeId,
+              type: ROUTE_SHAPE,
+              x: 100,
+              y: 100,
+              props: {
+                id: routeId,
+              },
+            },
+          ]);
 
           onMount?.(editor);
         }}
