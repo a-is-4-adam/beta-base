@@ -23,4 +23,17 @@ model Location {
   map            Json?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+
+  Route Route[]
+}
+
+model Route {
+  id         String   @id @default(cuid())
+  grade      String
+  color      String
+  sector     String
+  x          Float
+  y          Float
+  locationId String
+  location   Location @relation(fields: [locationId], references: [id])
 }

@@ -1002,6 +1002,25 @@ async function main() {
     data: locations,
   });
 
+  const enoggra = await prisma.location.findFirstOrThrow({
+    where: { slug: "enoggra" },
+  });
+
+  const routes = [
+    {
+      grade: "v0",
+      color: "yellow",
+      sector: "cove",
+      x: 100,
+      y: 100,
+      locationId: enoggra.id,
+    },
+  ];
+
+  await prisma.route.createMany({
+    data: routes,
+  });
+
   console.log("Seed data created successfully");
 }
 

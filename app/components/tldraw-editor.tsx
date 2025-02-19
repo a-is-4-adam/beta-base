@@ -16,12 +16,14 @@ import {
   ROUTE_SHAPE,
   RouteShapeUtil,
 } from "./tldraw/shape-utils/route-shape-util";
+import type { Route } from "@prisma/client";
 
 const customShapesUtils = [PolygonShapeUtil, RouteShapeUtil];
 const customTools = [MemberTool];
 
 type TldrawEditorProps = {
   map: Record<string, unknown> | undefined;
+  routes: Route[];
 } & Partial<Pick<React.ComponentPropsWithoutRef<typeof Tldraw>, "onMount">>;
 
 const components: TLComponents = {
@@ -36,7 +38,7 @@ const components: TLComponents = {
   ShapeIndicators: TldrawShapeIndicators,
 };
 
-export function Map({ map, onMount }: TldrawEditorProps) {
+export function Map({ map, routes, onMount }: TldrawEditorProps) {
   const store = React.useMemo(() => {
     console.log("creating store");
     return createTLStore({
@@ -80,18 +82,24 @@ export function Map({ map, onMount }: TldrawEditorProps) {
               },
             });
           }
-          const routeId = createShapeId("route");
-          editor.createShapes([
-            {
-              id: routeId,
-              type: ROUTE_SHAPE,
-              x: 100,
-              y: 100,
-              props: {
-                id: routeId,
-              },
-            },
-          ]);
+          editor.createShapes(
+            routes.map((route) => {
+              const shapeId = createShapeId(route.id);
+
+              return {
+                id: shapeId,
+                type: ROUTE_SHAPE,
+                x: route.x,
+                y: route.y,
+                props: {
+                  id: route.id,
+                  grade: route.grade,
+                  color: route.color,
+                  sector: route.sector,
+                },
+              };
+            })
+          );
 
           onMount?.(editor);
         }}

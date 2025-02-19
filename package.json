@@ -12,6 +12,7 @@
   "dependencies": {
     "@clerk/react-router": "^1.0.8",
     "@neondatabase/serverless": "^0.10.4",
+    "@paralleldrive/cuid2": "^2.2.2",
     "@prisma/adapter-neon": "^6.3.1",
     "@prisma/client": "^6.3.1",
     "@radix-ui/react-slot": "^1.1.2",
@@ -21,9 +22,9 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "decode-formdata": "^0.8.0",
+    "framer-motion": "^11.3.0-alpha.0",
     "isbot": "^5.1.17",
     "lucide-react": "^0.475.0",
-    "framer-motion": "^11.3.0-alpha.0",
     "patch-package": "^8.0.0",
     "prisma": "^6.3.1",
     "react": "^19.0.0",
