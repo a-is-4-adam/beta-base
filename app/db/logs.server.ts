@@ -19,3 +19,15 @@ export function upsertLog(log: {
     },
   });
 }
+
+export async function getLogById(id: string) {
+  return prismaClientWs.log.findUnique({
+    where: { id },
+  });
+}
+
+export async function deleteLogById(id: string) {
+  return prismaClientWs.log.delete({
+    where: { id },
+  });
+}

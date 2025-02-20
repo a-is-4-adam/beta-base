@@ -45,7 +45,8 @@ export function Map({ map, routes, onMount }: TldrawEditorProps) {
       shapeUtils: [...defaultShapeUtils, ...customShapesUtils],
       snapshot: map,
     });
-  }, [map]);
+    // TODO change the map prop to be a string
+  }, [JSON.stringify(map)]);
 
   return (
     <div className="absolute inset-0 [&_*.tl-background]:bg-white border-x border-zinc-950/5 ">

@@ -16,7 +16,7 @@ import {
   buildServerError,
   createServerValidate,
 } from "@/lib/createServerValidate";
-import { upsertLog } from "@/db/logs.server";
+import { deleteLogById, getLogById, upsertLog } from "@/db/logs.server";
 import { Input } from "@/components/ui/textfield";
 import { CheckIcon, ZapIcon } from "lucide-react";
 import {
@@ -33,6 +33,7 @@ import React from "react";
 import { createShapeId, useValue, type Editor } from "tldraw";
 import {
   isRouteShape,
+  ROUTE_SHAPE,
   type RouteShape,
 } from "@/components/tldraw/shape-utils/route-shape-util";
 
@@ -102,16 +103,21 @@ export async function action(args: Route.ActionArgs) {
   }
   const userId = await getUserId(args);
 
-  try {
-    await upsertLog({
-      id: result.data.id,
-      routeId: result.data.routeId,
-      status: result.data.status,
-      userId,
-    });
-  } catch (error) {
-    return buildServerError("Failed to log", result.data).errors.formState;
+  if (result.data.id) {
+    const log = await getLogById(result.data.id);
+
+    if (log && log.status === result.data.status) {
+      await deleteLogById(log.id);
+      return redirect(`/dashboard?routeId=${result.data.routeId}`);
+    }
   }
+
+  await upsertLog({
+    id: result.data.id,
+    routeId: result.data.routeId,
+    status: result.data.status,
+    userId,
+  });
 
   return redirect(`/dashboard?routeId=${result.data.routeId}`);
 }
@@ -201,13 +207,19 @@ function UpsertLogForm({
   actionData: Route.ComponentProps["actionData"];
   shape: RouteShape;
 }) {
+  const { editor } = useExternalTldrawEditor();
   const fetcher = useFetcher();
-  const status = fetcher.formData
-    ? fetcher.formData?.get("status")
-    : shape.props.status;
 
+  const fetcherStatus = fetcher.formData?.get("status");
+  const isUpdating = fetcher.formData?.get("id");
+  const isDeleting = isUpdating && fetcherStatus !== shape.props.status;
+  const status = isDeleting ? undefined : fetcherStatus ?? shape.props.status;
+
+  // TODO I think this form should be split up per button  Should make the above easier
+  // and could use different methods for each button
   const form = useForm({
     defaultValues: {
+      id: shape.props.id,
       routeId: shape.props.id,
       status: shape.props.status,
     },
@@ -220,6 +232,26 @@ function UpsertLogForm({
   });
 
   const formErrors = useStore(form.store, (formState) => formState.errors);
+
+  const handleChange = (value: { status: "SEND" | "FLASH" }) => {
+    if (value.status === form.state.values.status) {
+      editor.updateShape({
+        id: createShapeId(shape.props.id),
+        type: ROUTE_SHAPE,
+        props: {
+          status: undefined,
+        },
+      });
+    } else {
+      editor.updateShape({
+        id: createShapeId(shape.props.id),
+        type: ROUTE_SHAPE,
+        props: {
+          status: value.status,
+        },
+      });
+    }
+  };
 
   return (
     <fetcher.Form method="post" className="flex gap-2">
@@ -243,6 +275,9 @@ function UpsertLogForm({
             name={field.name}
             value="SEND"
             variant={status === "SEND" ? "default" : "outline"}
+            onPress={() => {
+              handleChange({ status: "SEND" });
+            }}
             size="lg"
             className="w-full gap-2"
           >
@@ -257,6 +292,9 @@ function UpsertLogForm({
             name={field.name}
             value="FLASH"
             variant={status === "FLASH" ? "default" : "outline"}
+            onPress={() => {
+              handleChange({ status: "FLASH" });
+            }}
             size="lg"
             className="w-full gap-2"
           >
