@@ -14,23 +14,30 @@ type ServerFormState<TFormData> = Pick<
 type CreateServerValidateOptions<
   TFormData,
   TFormValidator extends Validator<TFormData, unknown> | undefined = undefined
-> = FormOptions<TFormData, TFormValidator> & {
-  validators: {
+> = Omit<FormOptions<TFormData, TFormValidator>, "validators"> & {
+  validators: Omit<
+    FormOptions<TFormData, TFormValidator>["validators"],
+    "onSubmit"
+  > & {
     onSubmit: StandardSchemaV1<TFormData>;
   };
 };
 
+type ServerValidateFailureResult<TFormData> = {
+  success: false;
+  errors: {
+    formState: ServerFormState<TFormData>;
+  };
+};
+
+type ServerValidateSuccessResult<TFormData> = {
+  success: true;
+  data: TFormData;
+};
+
 type ServerValidateResult<TFormData> =
-  | {
-      success: true;
-      data: TFormData;
-    }
-  | {
-      success: false;
-      errors: {
-        formState: ServerFormState<TFormData>;
-      };
-    };
+  | ServerValidateSuccessResult<TFormData>
+  | ServerValidateFailureResult<TFormData>;
 
 export const createServerValidate =
   <
@@ -62,20 +69,7 @@ export const createServerValidate =
       .map((issue) => issue.message)
       .join(", ");
 
-    const formState: ServerFormState<TFormData> = {
-      errorMap: {
-        onServer: onServerErrorStr,
-      },
-      values,
-      errors: [onServerErrorStr],
-    };
-
-    return {
-      success: false,
-      errors: {
-        formState,
-      },
-    };
+    return buildServerError(onServerErrorStr, values);
   };
 
 export const initialFormState: ServerFormState<any> = {
@@ -85,3 +79,21 @@ export const initialFormState: ServerFormState<any> = {
   values: undefined,
   errors: [],
 };
+
+export function buildServerError<TFormData>(
+  error: string,
+  values: TFormData
+): ServerValidateFailureResult<TFormData> {
+  return {
+    success: false,
+    errors: {
+      formState: {
+        errorMap: {
+          onServer: error,
+        },
+        values,
+        errors: [error],
+      },
+    },
+  };
+}

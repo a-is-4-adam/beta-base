@@ -20,7 +20,7 @@ export const ROUTE_SHAPE = "route";
 export type RouteShape = TLBaseShape<
   typeof ROUTE_SHAPE,
   {
-    id?: string;
+    id: string;
     radius: number;
     color: string;
     grade: string;
@@ -32,7 +32,7 @@ export type RouteShape = TLBaseShape<
 export class RouteShapeUtil extends ShapeUtil<RouteShape> {
   static override type = ROUTE_SHAPE;
   static override props: RecordProps<RouteShape> = {
-    id: T.optional(T.string),
+    id: T.string,
     radius: T.number,
     color: T.string,
     grade: T.string,
@@ -42,7 +42,7 @@ export class RouteShapeUtil extends ShapeUtil<RouteShape> {
 
   getDefaultProps(): RouteShape["props"] {
     return {
-      id: undefined,
+      id: "",
       radius: DEFAULT_ROUTE_RADIUS,
       color: DEFAULT_ROUTE_COLOR,
       grade: DEFAULT_ROUTE_GRADE,

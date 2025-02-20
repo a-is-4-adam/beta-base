@@ -6,3 +6,9 @@ export function getActiveRoutesWithLogsByLocationId(locationId: string) {
     include: { Log: true },
   });
 }
+
+export function getActiveRouteById(id: string) {
+  return prismaClientHttp.route.findUnique({
+    where: { id, deletedAt: null },
+  });
+}

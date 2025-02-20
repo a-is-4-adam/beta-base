@@ -8,11 +8,10 @@ import {
 } from "framer-motion";
 import { Dialog, Modal, ModalOverlay } from "react-aria-components";
 import { useState } from "react";
-import { Button } from "./ui/button";
 import { ClientOnly } from "./client-only";
 
-const MotionModal = motion(Modal);
-const MotionModalOverlay = motion(ModalOverlay);
+const MotionModal = motion.create(Modal);
+const MotionModalOverlay = motion.create(ModalOverlay);
 
 const inertiaTransition = {
   type: "inertia" as const,

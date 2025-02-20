@@ -8,7 +8,10 @@ import {
 import type { Route } from "./+types/route";
 import { useFetcher, useFetchers } from "react-router";
 import { z } from "zod";
-import { createServerValidate } from "@/lib/createServerValidate";
+import {
+  buildServerError,
+  createServerValidate,
+} from "@/lib/createServerValidate";
 import { typographyVariants } from "@/components/ui/typography";
 import { CheckIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -60,7 +63,7 @@ const validators = {
   }),
 };
 
-export const serverValidate = createServerValidate({
+const serverValidate = createServerValidate({
   validators,
 });
 
@@ -78,13 +81,7 @@ export async function action(args: Route.ActionArgs) {
   });
 
   if (!location) {
-    return {
-      errorMap: {
-        onServer: "Location not found",
-      },
-      values: result.data,
-      errors: ["Location not found"],
-    };
+    return buildServerError("Location not found", result.data).errors.formState;
   }
 
   const userId = await getUserId(args);
@@ -192,7 +189,7 @@ function EditActiveLocation({
             <Button
               type="submit"
               name={field.name}
-              value={field.value}
+              value={field.state.value}
               variant="outline"
               className="w-full h-auto py-4 flex items-center justify-between"
             >
