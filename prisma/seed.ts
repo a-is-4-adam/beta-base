@@ -982,43 +982,58 @@ async function main() {
   // Delete existing records
   await prisma.location.deleteMany({});
 
-  // Sample locations
-  const locations = [
-    {
-      name: "Enoggra",
-      slug: "enoggra",
-      organizationId: "org_2rcDzOAeZ1khUtDYZb4QsyP9X6Y",
-      map: map,
-    },
-    {
-      name: "Morningside",
-      slug: "morningside",
-      organizationId: "org_2rcDzOAeZ1khUtDYZb4QsyP9X6Y",
-      map: map,
-    },
-  ];
-
   await prisma.location.createMany({
-    data: locations,
+    data: [
+      {
+        name: "Enoggra",
+        slug: "enoggra",
+        organizationId: "org_2rcDzOAeZ1khUtDYZb4QsyP9X6Y",
+        map: map,
+      },
+      {
+        name: "Morningside",
+        slug: "morningside",
+        organizationId: "org_2rcDzOAeZ1khUtDYZb4QsyP9X6Y",
+        map: map,
+      },
+    ],
   });
 
   const enoggra = await prisma.location.findFirstOrThrow({
     where: { slug: "enoggra" },
   });
 
-  const routes = [
-    {
-      grade: "v0",
-      color: "yellow",
-      sector: "cove",
-      x: 100,
-      y: 100,
-      locationId: enoggra.id,
-    },
-  ];
-
   await prisma.route.createMany({
-    data: routes,
+    data: [
+      {
+        grade: "v0",
+        color: "yellow",
+        sector: "cove",
+        x: 100,
+        y: 100,
+        locationId: enoggra.id,
+      },
+      {
+        grade: "v3",
+        color: "green",
+        sector: "prow",
+        x: 200,
+        y: 100,
+        locationId: enoggra.id,
+      },
+    ],
+  });
+
+  const yellowRoute = await prisma.route.findFirstOrThrow({
+    where: { color: "yellow" },
+  });
+
+  await prisma.log.create({
+    data: {
+      status: "FLASH",
+      userId: "user_2qCgSa9zwR9Vywd4skID4fcDiL2",
+      routeId: yellowRoute.id,
+    },
   });
 
   console.log("Seed data created successfully");

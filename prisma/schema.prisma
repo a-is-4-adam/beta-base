@@ -28,12 +28,32 @@ model Location {
 }
 
 model Route {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   grade      String
   color      String
   sector     String
   x          Float
   y          Float
   locationId String
-  location   Location @relation(fields: [locationId], references: [id])
+  location   Location  @relation(fields: [locationId], references: [id])
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
+
+  Log Log[]
+}
+
+model Log {
+  id        String    @id @default(cuid())
+  status    LogStatus
+  userId    String
+  routeId   String
+  route     Route     @relation(fields: [routeId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+enum LogStatus {
+  SEND
+  FLASH
 }

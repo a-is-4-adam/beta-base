@@ -16,14 +16,14 @@ import {
   ROUTE_SHAPE,
   RouteShapeUtil,
 } from "./tldraw/shape-utils/route-shape-util";
-import type { Route } from "@prisma/client";
+import type { Log, Route } from "@prisma/client";
 
 const customShapesUtils = [PolygonShapeUtil, RouteShapeUtil];
 const customTools = [MemberTool];
 
 type TldrawEditorProps = {
   map: Record<string, unknown> | undefined;
-  routes: Route[];
+  routes: Array<Route & { Log?: Log[] }>;
 } & Partial<Pick<React.ComponentPropsWithoutRef<typeof Tldraw>, "onMount">>;
 
 const components: TLComponents = {
@@ -96,6 +96,7 @@ export function Map({ map, routes, onMount }: TldrawEditorProps) {
                   grade: route.grade,
                   color: route.color,
                   sector: route.sector,
+                  status: route.Log?.[0]?.status,
                 },
               };
             })

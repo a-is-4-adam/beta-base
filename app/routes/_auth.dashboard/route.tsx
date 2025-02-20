@@ -7,7 +7,7 @@ import "tldraw/tldraw.css";
 import type { Prisma } from "@prisma/client";
 import { DrawerLayout } from "@/components/drawer-layout";
 import { Button } from "@/components/ui/button";
-import { getRoutesByLocationId } from "@/db/routes";
+import { getActiveRoutesWithLogsByLocationId } from "@/db/routes.server";
 
 export async function loader(args: Route.LoaderArgs) {
   const publicMetadata = await getUserPublicMetadata(args);
@@ -24,7 +24,7 @@ export async function loader(args: Route.LoaderArgs) {
     throw redirect("/switch-location");
   }
 
-  const routes = await getRoutesByLocationId(activeLocation.id);
+  const routes = await getActiveRoutesWithLogsByLocationId(activeLocation.id);
 
   return {
     activeLocation,

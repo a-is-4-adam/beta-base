@@ -1,4 +1,6 @@
 import { routeVariants } from "@/components/route-variants";
+import type { Log } from "@prisma/client";
+import { CheckIcon } from "lucide-react";
 import {
   Circle2d,
   Geometry2d,
@@ -18,11 +20,12 @@ export const ROUTE_SHAPE = "route";
 export type RouteShape = TLBaseShape<
   typeof ROUTE_SHAPE,
   {
-    id: string | undefined;
+    id?: string;
     radius: number;
     color: string;
     grade: string;
     sector?: string;
+    status?: Log["status"];
   }
 >;
 
@@ -34,6 +37,7 @@ export class RouteShapeUtil extends ShapeUtil<RouteShape> {
     color: T.string,
     grade: T.string,
     sector: T.optional(T.string),
+    status: T.optional(T.literalEnum("SEND", "FLASH")),
   };
 
   getDefaultProps(): RouteShape["props"] {
@@ -43,6 +47,7 @@ export class RouteShapeUtil extends ShapeUtil<RouteShape> {
       color: DEFAULT_ROUTE_COLOR,
       grade: DEFAULT_ROUTE_GRADE,
       sector: undefined,
+      status: undefined,
     };
   }
 
@@ -66,7 +71,7 @@ export class RouteShapeUtil extends ShapeUtil<RouteShape> {
 
   component(shape: RouteShape) {
     return (
-      <HTMLContainer className="relative">
+      <HTMLContainer className="relative" id="foo">
         <svg
           // @ts-expect-error TODO fix this
           className={routeVariants({ color: shape.props.color })}
@@ -80,9 +85,15 @@ export class RouteShapeUtil extends ShapeUtil<RouteShape> {
             r={shape.props.radius + 2}
           ></circle>
         </svg>
-        <span className="absolute inset-0 content-center text-center text-xs font-semibold uppercase">
-          {shape.props.grade}
-        </span>
+        {shape.props.status ? (
+          <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold uppercase">
+            <CheckIcon className="size-4" />
+          </span>
+        ) : (
+          <span className="absolute inset-0 content-center text-center text-xs font-semibold uppercase">
+            {shape.props.grade}
+          </span>
+        )}
       </HTMLContainer>
     );
   }
