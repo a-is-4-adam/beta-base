@@ -1,33 +1,31 @@
 import type { Log } from "@prisma/client";
 import { prismaClientWs } from "./db.server";
-import { createId } from "@paralleldrive/cuid2";
+
+type LogKey = {
+  userId: string;
+  routeId: string;
+};
 
 export function upsertLog(log: {
-  id?: string;
   status: Log["status"];
   userId: string;
   routeId: string;
 }) {
-  const logId = log.id ?? createId();
-
   return prismaClientWs.log.upsert({
-    where: { id: log.id ?? logId },
+    where: { userId_routeId: { userId: log.userId, routeId: log.routeId } },
     update: log,
-    create: {
-      ...log,
-      id: logId,
-    },
+    create: log,
   });
 }
 
-export async function getLogById(id: string) {
+export async function getLogById(logKey: LogKey) {
   return prismaClientWs.log.findUnique({
-    where: { id },
+    where: { userId_routeId: logKey },
   });
 }
 
-export async function deleteLogById(id: string) {
+export async function deleteLogById(logKey: LogKey) {
   return prismaClientWs.log.delete({
-    where: { id },
+    where: { userId_routeId: logKey },
   });
 }

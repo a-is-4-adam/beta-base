@@ -34,7 +34,6 @@ import { createShapeId, useValue, type Editor } from "tldraw";
 import {
   isRouteShape,
   ROUTE_SHAPE,
-  type RouteShape,
 } from "@/components/tldraw/shape-utils/route-shape-util";
 
 export async function loader(args: Route.LoaderArgs) {
@@ -62,26 +61,13 @@ export async function loader(args: Route.LoaderArgs) {
 
 const validators = {
   onMount: z.object({
-    id: z.string().min(1).optional(),
     routeId: z.string().min(1),
     status: z.enum(["SEND", "FLASH"]).optional(),
   }),
-  onSubmit: z
-    .object({
-      id: z.string().optional(),
-      routeId: z.string().min(1),
-      status: z.enum(["SEND", "FLASH"]),
-    })
-    .refine(({ id, ...rest }) => {
-      if (typeof id === "string" && id.length === 0) {
-        return rest;
-      }
-
-      return {
-        ...rest,
-        id,
-      };
-    }),
+  onSubmit: z.object({
+    routeId: z.string().min(1),
+    status: z.enum(["SEND", "FLASH"]),
+  }),
 };
 
 const serverValidate = createServerValidate({
@@ -103,22 +89,27 @@ export async function action(args: Route.ActionArgs) {
   }
   const userId = await getUserId(args);
 
-  if (result.data.id) {
-    const log = await getLogById(result.data.id);
+  const isDeleting = args.request.method.toLowerCase() === "delete";
 
-    if (log && log.status === result.data.status) {
-      await deleteLogById(log.id);
-      return redirect(`/dashboard?routeId=${result.data.routeId}`);
+  if (isDeleting) {
+    const log = await getLogById({
+      userId,
+      routeId: result.data.routeId,
+    });
+
+    if (log) {
+      await deleteLogById({
+        userId,
+        routeId: result.data.routeId,
+      });
     }
+  } else {
+    await upsertLog({
+      userId,
+      routeId: result.data.routeId,
+      status: result.data.status,
+    });
   }
-
-  await upsertLog({
-    id: result.data.id,
-    routeId: result.data.routeId,
-    status: result.data.status,
-    userId,
-  });
-
   return redirect(`/dashboard?routeId=${result.data.routeId}`);
 }
 
@@ -197,31 +188,50 @@ function DrawerPreview({
     return <EditLogEmptyState />;
   }
 
-  return <UpsertLogForm actionData={actionData} shape={routeShape} />;
+  return (
+    <div className="flex gap-2">
+      <UpsertLogForm
+        actionData={actionData}
+        routeId={routeShape.props.id}
+        status="SEND"
+        routeStatus={routeShape.props.status}
+      >
+        <CheckIcon /> Send
+      </UpsertLogForm>
+      <UpsertLogForm
+        actionData={actionData}
+        routeId={routeShape.props.id}
+        status="FLASH"
+        routeStatus={routeShape.props.status}
+      >
+        <ZapIcon /> Flash
+      </UpsertLogForm>
+    </div>
+  );
 }
 
 function UpsertLogForm({
   actionData,
-  shape,
+  routeId,
+  status,
+  routeStatus,
+  children,
 }: {
   actionData: Route.ComponentProps["actionData"];
-  shape: RouteShape;
+  routeId: string;
+  status: "SEND" | "FLASH";
+  routeStatus: "SEND" | "FLASH" | undefined;
+  children: React.ReactNode;
 }) {
   const { editor } = useExternalTldrawEditor();
   const fetcher = useFetcher();
 
-  const fetcherStatus = fetcher.formData?.get("status");
-  const isUpdating = fetcher.formData?.get("id");
-  const isDeleting = isUpdating && fetcherStatus !== shape.props.status;
-  const status = isDeleting ? undefined : fetcherStatus ?? shape.props.status;
+  const isActiveStatus = routeStatus === status;
 
-  // TODO I think this form should be split up per button  Should make the above easier
-  // and could use different methods for each button
   const form = useForm({
     defaultValues: {
-      id: shape.props.id,
-      routeId: shape.props.id,
-      status: shape.props.status,
+      routeId,
+      status,
     },
     validators,
     // @ts-expect-error TODO fix this
@@ -229,40 +239,46 @@ function UpsertLogForm({
       (baseForm) => mergeForm(baseForm, actionData ?? {}),
       [actionData]
     ),
+    onSubmit: ({ value }) => {
+      fetcher.submit(value, {
+        method: isActiveStatus ? "DELETE" : "POST",
+      });
+
+      if (isActiveStatus) {
+        editor.updateShape({
+          id: createShapeId(routeId),
+          type: ROUTE_SHAPE,
+          props: {
+            status: undefined,
+          },
+        });
+      } else {
+        editor.updateShape({
+          id: createShapeId(routeId),
+          type: ROUTE_SHAPE,
+          props: {
+            status,
+          },
+        });
+      }
+    },
   });
 
   const formErrors = useStore(form.store, (formState) => formState.errors);
 
-  const handleChange = (value: { status: "SEND" | "FLASH" }) => {
-    if (value.status === form.state.values.status) {
-      editor.updateShape({
-        id: createShapeId(shape.props.id),
-        type: ROUTE_SHAPE,
-        props: {
-          status: undefined,
-        },
-      });
-    } else {
-      editor.updateShape({
-        id: createShapeId(shape.props.id),
-        type: ROUTE_SHAPE,
-        props: {
-          status: value.status,
-        },
-      });
-    }
-  };
-
   return (
-    <fetcher.Form method="post" className="flex gap-2">
+    <fetcher.Form
+      method={"post"}
+      className="w-full"
+      onSubmit={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        form.handleSubmit();
+      }}
+    >
       {formErrors.map((error) => (
         <p key={error as string}>{error}</p>
       ))}
-      <form.Field name="id">
-        {(field) => (
-          <Input type="hidden" name={field.name} value={field.state.value} />
-        )}
-      </form.Field>
       <form.Field name="routeId">
         {(field) => (
           <Input type="hidden" name={field.name} value={field.state.value} />
@@ -273,32 +289,12 @@ function UpsertLogForm({
           <Button
             type="submit"
             name={field.name}
-            value="SEND"
-            variant={status === "SEND" ? "default" : "outline"}
-            onPress={() => {
-              handleChange({ status: "SEND" });
-            }}
+            value={field.state.value}
+            variant={isActiveStatus ? "default" : "outline"}
             size="lg"
             className="w-full gap-2"
           >
-            <CheckIcon /> Send
-          </Button>
-        )}
-      </form.Field>
-      <form.Field name="status">
-        {(field) => (
-          <Button
-            type="submit"
-            name={field.name}
-            value="FLASH"
-            variant={status === "FLASH" ? "default" : "outline"}
-            onPress={() => {
-              handleChange({ status: "FLASH" });
-            }}
-            size="lg"
-            className="w-full gap-2"
-          >
-            <ZapIcon /> Flash
+            {children}
           </Button>
         )}
       </form.Field>
