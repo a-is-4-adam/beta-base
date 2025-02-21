@@ -14,16 +14,14 @@ import {
   BreadcrumbLink,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { getUserId, getUserOrganisationList } from "@/server/clerk";
 
 export async function loader(args: Route.LoaderArgs) {
-  const { userId } = await getAuth(args);
+  const orgs = await getUserOrganisationList(args);
 
-  // Protect the route by checking if the user is signed in
-  if (!userId) {
-    return redirect("/sign-in?redirect_url=" + args.request.url);
-  }
-
-  return null;
+  return {
+    isAdmin: orgs.totalCount > 0,
+  };
 }
 
 function isBreadcrumbHandle(handle: unknown): handle is { breadcrumb: string } {
@@ -35,7 +33,7 @@ function isBreadcrumbHandle(handle: unknown): handle is { breadcrumb: string } {
   );
 }
 
-export default function Route() {
+export default function Route({ loaderData }: Route.ComponentProps) {
   const matches = useMatches();
 
   const crumbs = matches
@@ -54,7 +52,7 @@ export default function Route() {
 
   return (
     <SidebarProvider>
-      <AppSidebar />
+      <AppSidebar isAdmin={loaderData.isAdmin} />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
           <div className="flex items-center gap-2 px-4">

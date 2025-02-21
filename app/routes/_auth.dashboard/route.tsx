@@ -75,28 +75,31 @@ const serverValidate = createServerValidate({
 });
 
 export async function action(args: Route.ActionArgs) {
-  const formData = await args.request.formData();
+  const [userId, formData] = await Promise.all([
+    getUserId(args),
+    args.request.formData(),
+  ]);
   const result = await serverValidate(formData);
 
   if (!result.success) {
     return result.errors.formState;
   }
 
-  const route = await getActiveRouteById(result.data.routeId);
+  const [route, log] = await Promise.all([
+    getActiveRouteById(result.data.routeId),
+    getLogById({
+      userId,
+      routeId: result.data.routeId,
+    }),
+  ]);
 
   if (!route) {
     return buildServerError("Route not found", result.data).errors.formState;
   }
-  const userId = await getUserId(args);
 
   const isDeleting = args.request.method.toLowerCase() === "delete";
 
   if (isDeleting) {
-    const log = await getLogById({
-      userId,
-      routeId: result.data.routeId,
-    });
-
     if (log) {
       await deleteLogById({
         userId,

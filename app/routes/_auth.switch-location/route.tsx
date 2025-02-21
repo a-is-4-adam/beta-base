@@ -37,7 +37,7 @@ export async function loader(args: Route.LoaderArgs) {
     organizationId: organisationIdsFromLocations,
   });
 
-  const organisationLogos = Object.fromEntries(
+  const organisations = Object.fromEntries(
     allOrganisations.data.map((organisation) => {
       return [
         organisation.id,
@@ -52,7 +52,7 @@ export async function loader(args: Route.LoaderArgs) {
 
   return {
     locations,
-    organisationLogos,
+    organisations,
     activeLocationId: publicMetadata.activeLocationId,
   };
 }
@@ -117,8 +117,7 @@ export default function Route({
             activeId={loaderData.activeLocationId}
             location={{
               ...location,
-              organisationLogo:
-                loaderData.organisationLogos[location.organizationId],
+              organisation: loaderData.organisations[location.organizationId],
             }}
           />
         ))}
@@ -139,7 +138,7 @@ function EditActiveLocation({
   location: {
     id: string;
     name: string;
-    organisationLogo: {
+    organisation: {
       logoUrl: string;
       name: string;
     };
@@ -193,17 +192,17 @@ function EditActiveLocation({
               variant="outline"
               className="w-full h-auto py-4 flex items-center justify-between"
             >
-              {location.organisationLogo ? (
+              {location.organisation ? (
                 <img
-                  src={location.organisationLogo.logoUrl}
-                  alt={location.organisationLogo.name}
+                  src={location.organisation.logoUrl}
+                  alt={location.organisation.name}
                   className="size-8 rounded-full"
                 />
               ) : null}
               <div className="flex-grow ml-4">
                 <div className="flex flex-col gap-1 items-start">
                   <span className={typographyVariants({ variant: "muted" })}>
-                    9 Degrees
+                    {location.organisation.name}
                   </span>
                   <span
                     className={typographyVariants({

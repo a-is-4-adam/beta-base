@@ -14,29 +14,12 @@ import {
 
 import { Link } from "react-router";
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({
+  isAdmin,
+  ...props
+}: React.ComponentProps<typeof Sidebar> & { isAdmin: boolean }) {
   return (
     <Sidebar variant="inset" {...props}>
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <div className="grid flex-1 text-left text-sm leading-tight">
-              <OrganizationSwitcher
-                hidePersonal={true}
-                appearance={{
-                  elements: {
-                    rootBox: "w-full",
-                    avatarBox: "bg-transparent",
-                    organizationSwitcherTrigger: "p-2 w-full justify-between",
-                    organizationPreviewMainIdentifier:
-                      "font-semibold text-sidebar-foreground",
-                  },
-                }}
-              />
-            </div>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarMenu>
@@ -56,6 +39,26 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
+        {isAdmin ? (
+          <SidebarGroup>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link to="/admin">
+                    <span>Admin</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link to="/switch-organisation">
+                    <span>Switch Organisation</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroup>
+        ) : null}
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>

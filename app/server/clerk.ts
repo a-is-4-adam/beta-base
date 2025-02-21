@@ -12,7 +12,7 @@ export async function getUserId(args: Parameters<typeof getAuth>[0]) {
   const auth = await getAuth(args);
 
   if (!auth.userId) {
-    throw redirect("/sign-in");
+    throw redirect("/sign-in?redirect_url=" + args.request.url);
   }
 
   return auth.userId;
@@ -28,4 +28,13 @@ export async function getUserPublicMetadata(
   const user = await clerkClient.users.getUser(userId);
 
   return user.publicMetadata;
+}
+
+export async function getUserOrganisationList(
+  args: Parameters<typeof getAuth>[0]
+) {
+  const client = getClerkClient();
+  const userId = await getUserId(args);
+
+  return client.users.getOrganizationMembershipList({ userId });
 }

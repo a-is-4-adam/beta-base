@@ -1,14 +1,16 @@
 import { ClerkLoaded } from "@clerk/react-router";
 import { Outlet, redirect } from "react-router";
 import MouseMoveEffect from "../_index/components/mouse-move-effect";
-import { getAuth } from "@clerk/react-router/ssr.server";
 import type { Route } from "./+types/route";
+import { getUserId } from "@/server/clerk";
 
 export async function loader(args: Route.LoaderArgs) {
-  const { userId } = await getAuth(args);
+  const userId = await getUserId(args);
+
   if (userId) {
     return redirect(process.env.CLERK_SIGN_IN_FORCE_REDIRECT_URL!);
   }
+
   return null;
 }
 

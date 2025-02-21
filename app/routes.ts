@@ -11,6 +11,8 @@ export default [
   layout("routes/_auth/route.tsx", [
     route("dashboard", "routes/_auth.dashboard/route.tsx"),
     route("switch-location", "routes/_auth.switch-location/route.tsx"),
+    route("admin", "routes/_auth.admin/route.tsx"),
+    route("switch-organisation", "routes/_auth.switch-organisation/route.tsx"),
   ]),
 
   layout("routes/_pre-auth/route.tsx", [
