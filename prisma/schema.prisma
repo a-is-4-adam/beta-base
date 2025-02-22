@@ -16,31 +16,34 @@ datasource db {
 }
 
 model Location {
-  id             String   @id @default(cuid())
+  id             String   @unique @default(cuid())
   name           String
   slug           String
   organizationId String
   map            Json?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+  routes         Route[]
 
-  Route Route[]
+  @@id([organizationId, slug])
 }
 
 model Route {
-  id         String    @id @default(cuid())
-  grade      String
-  color      String
-  sector     String
-  x          Float
-  y          Float
-  locationId String
-  location   Location  @relation(fields: [locationId], references: [id])
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  deletedAt  DateTime?
+  id                     String    @id @default(cuid())
+  grade                  String
+  color                  String
+  sector                 String
+  x                      Float
+  y                      Float
+  locationSlug           String
+  locationOrganizationId String
+  location               Location  @relation(fields: [locationOrganizationId, locationSlug], references: [organizationId, slug])
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+  deletedAt              DateTime?
+  Log                    Log[]
 
-  Log Log[]
+  @@index([locationOrganizationId, locationSlug])
 }
 
 model Log {

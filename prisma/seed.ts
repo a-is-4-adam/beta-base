@@ -1011,7 +1011,8 @@ async function main() {
         sector: "cove",
         x: 100,
         y: 100,
-        locationId: enoggera.id,
+        locationOrganizationId: enoggera.organizationId,
+        locationSlug: enoggera.slug,
       },
       {
         grade: "v3",
@@ -1019,7 +1020,8 @@ async function main() {
         sector: "prow",
         x: 200,
         y: 100,
-        locationId: enoggera.id,
+        locationOrganizationId: enoggera.organizationId,
+        locationSlug: enoggera.slug,
       },
     ],
   });

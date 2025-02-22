@@ -1,8 +1,13 @@
 import { prismaClientHttp } from "./db.server";
 
-export function getActiveRoutesWithLogsByLocationId(locationId: string) {
+export function getActiveRoutesWithLogsByLocationId(id: string) {
   return prismaClientHttp.route.findMany({
-    where: { locationId, deletedAt: null },
+    where: {
+      location: {
+        id,
+      },
+      deletedAt: null,
+    },
     include: { Log: true },
   });
 }
