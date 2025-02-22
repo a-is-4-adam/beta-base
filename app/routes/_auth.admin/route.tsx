@@ -1,7 +1,11 @@
 import { getAuth } from "@clerk/react-router/ssr.server";
 import type { Route } from "./+types/route";
 import { getUserOrganisationList } from "@/server/clerk";
-import { redirect } from "react-router";
+import { Outlet, redirect } from "react-router";
+
+export const handle = {
+  breadcrumb: "Admin",
+};
 
 export async function loader(args: Route.LoaderArgs) {
   const [auth, orgs] = await Promise.all([
@@ -22,5 +26,5 @@ export async function loader(args: Route.LoaderArgs) {
   };
 }
 export default function Route() {
-  return <div>Admin layout</div>;
+  return <Outlet />;
 }

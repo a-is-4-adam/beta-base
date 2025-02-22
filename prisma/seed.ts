@@ -985,8 +985,8 @@ async function main() {
   await prisma.location.createMany({
     data: [
       {
-        name: "Enoggra",
-        slug: "enoggra",
+        name: "Enoggera",
+        slug: "enoggera",
         organizationId: "org_2rcDzOAeZ1khUtDYZb4QsyP9X6Y",
         map: map,
       },
@@ -999,8 +999,8 @@ async function main() {
     ],
   });
 
-  const enoggra = await prisma.location.findFirstOrThrow({
-    where: { slug: "enoggra" },
+  const enoggera = await prisma.location.findFirstOrThrow({
+    where: { slug: "enoggera" },
   });
 
   await prisma.route.createMany({
@@ -1011,7 +1011,7 @@ async function main() {
         sector: "cove",
         x: 100,
         y: 100,
-        locationId: enoggra.id,
+        locationId: enoggera.id,
       },
       {
         grade: "v3",
@@ -1019,7 +1019,7 @@ async function main() {
         sector: "prow",
         x: 200,
         y: 100,
-        locationId: enoggra.id,
+        locationId: enoggera.id,
       },
     ],
   });

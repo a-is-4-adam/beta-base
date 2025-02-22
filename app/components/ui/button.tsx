@@ -8,7 +8,6 @@ import {
 } from "react-aria-components";
 
 import { cn } from "@/lib/utils";
-import type { AriaLinkOptions } from "react-aria";
 
 const buttonVariants = cva(
   [

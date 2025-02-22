@@ -40,7 +40,6 @@ const components: TLComponents = {
 
 export function Map({ map, routes, onMount }: TldrawEditorProps) {
   const store = React.useMemo(() => {
-    console.log("creating store");
     return createTLStore({
       shapeUtils: [...defaultShapeUtils, ...customShapesUtils],
       snapshot: map,

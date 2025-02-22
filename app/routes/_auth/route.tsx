@@ -1,7 +1,6 @@
 import type { Route } from "./+types/route";
 import { Outlet, redirect, useMatches, type UIMatch } from "react-router";
 import { getAuth } from "@clerk/react-router/ssr.server";
-import { Breadcrumbs } from "react-aria-components";
 import { Separator } from "react-aria-components";
 import { AppSidebar } from "./components/app-sidebar";
 import {
@@ -10,6 +9,7 @@ import {
   SidebarTrigger,
 } from "./components/sidebar";
 import {
+  Breadcrumbs,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbSeparator,
@@ -24,12 +24,11 @@ export async function loader(args: Route.LoaderArgs) {
   };
 }
 
-function isBreadcrumbHandle(handle: unknown): handle is { breadcrumb: string } {
+function isBreadcrumbHandle(
+  handle: unknown
+): handle is { breadcrumb: string | ((data: unknown) => string) } {
   return (
-    handle !== null &&
-    typeof handle === "object" &&
-    "breadcrumb" in handle &&
-    typeof handle.breadcrumb === "string"
+    handle !== null && typeof handle === "object" && "breadcrumb" in handle
   );
 }
 
@@ -44,7 +43,10 @@ export default function Route({ loaderData }: Route.ComponentProps) {
 
       return {
         id: match.id,
-        title: match.handle.breadcrumb,
+        title:
+          typeof match.handle.breadcrumb === "function"
+            ? match.handle.breadcrumb(match.data)
+            : match.handle.breadcrumb,
         link: match.pathname,
       };
     })
