@@ -32,7 +32,7 @@ model Route {
   id                     String    @id @default(cuid())
   grade                  String
   color                  String
-  sector                 String
+  sector                 String?
   x                      Float
   y                      Float
   locationSlug           String

@@ -99,7 +99,7 @@ export function Map({
                   id: route.id,
                   grade: route.grade,
                   color: route.color,
-                  sector: route.sector,
+                  sector: route.sector ?? undefined,
                   status: route.Log?.[0]?.status,
                 },
               };

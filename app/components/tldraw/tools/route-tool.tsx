@@ -1,5 +1,15 @@
-import { StateNode, type TLStateNodeConstructor, Vec } from "@tldraw/editor";
-import { isRouteShape } from "../shape-utils/route-shape-util";
+import {
+  createShapeId,
+  StateNode,
+  type TLStateNodeConstructor,
+  Vec,
+} from "tldraw";
+import {
+  DEFAULT_ROUTE_RADIUS,
+  isRouteShape,
+  ROUTE_SHAPE,
+} from "../shape-utils/route-shape-util";
+import { createId } from "@paralleldrive/cuid2";
 
 class Dragging extends StateNode {
   static override id = "dragging";
@@ -75,6 +85,19 @@ class Idle extends StateNode {
     } else {
       this.editor.setSelectedShapes([]);
       this.editor.setHoveredShape(null);
+      const id = createId();
+      const { currentPagePoint } = this.editor.inputs;
+
+      this.editor.createShape({
+        type: ROUTE_SHAPE,
+        id: createShapeId(id),
+        x: currentPagePoint.x - DEFAULT_ROUTE_RADIUS,
+        y: currentPagePoint.y - DEFAULT_ROUTE_RADIUS,
+
+        props: {
+          id,
+        },
+      });
     }
   }
 

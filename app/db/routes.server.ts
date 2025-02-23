@@ -39,3 +39,20 @@ export function deleteRoute(id: string) {
     data: { deletedAt: new Date() },
   });
 }
+
+export function createRoute(data: {
+  id: Route["id"];
+  grade: Route["grade"];
+  color: Route["color"];
+  sector?: Route["sector"];
+  x: Route["x"];
+  y: Route["y"];
+  locationSlug: Route["locationSlug"];
+  locationOrganizationId: Route["locationOrganizationId"];
+}) {
+  return prismaClientHttp.route.upsert({
+    where: { id: data.id },
+    update: { sector: null, ...data },
+    create: { sector: null, ...data },
+  });
+}

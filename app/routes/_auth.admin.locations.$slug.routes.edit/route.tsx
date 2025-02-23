@@ -8,6 +8,7 @@ import { type Prisma } from "@prisma/client";
 import { DrawerLayout } from "@/components/drawer-layout";
 import { Button } from "@/components/ui/button";
 import {
+  createRoute,
   deleteRoute,
   getActiveRoutesWithLogsByLocationId,
   updateRoute,
@@ -68,39 +69,56 @@ export async function loader(args: Route.LoaderArgs) {
   };
 }
 
-const validators = {
-  onSubmit: z.object({
-    id: z.string().min(1),
-    grade: z.string().optional(),
-    color: z.string().optional(),
-    sector: z.string().optional(),
-    x: z.coerce.number().optional(),
-    y: z.coerce.number().optional(),
-  }),
-};
+const intentUpdateSchema = z.object({
+  intent: z.literal("update"),
+  id: z.string().min(1),
+  grade: z.string().optional(),
+  color: z.string().optional(),
+  sector: z.string().optional(),
+  x: z.coerce.number().optional(),
+  y: z.coerce.number().optional(),
+});
 
-const serverValidate = createServerValidate({
-  validators,
+const intentDeleteSchema = z.object({
+  intent: z.literal("delete"),
+  id: z.string().min(1),
+});
+
+const intentCreateSchema = z.object({
+  intent: z.literal("create"),
+  id: z.string().min(1),
+  grade: z.string(),
+  color: z.string(),
+  sector: z.string().optional(),
+  x: z.coerce.number(),
+  y: z.coerce.number(),
+});
+
+const onUpdateValidate = createServerValidate({
+  validators: {
+    onSubmit: intentUpdateSchema,
+  },
 });
 
 const onDeleteValidate = createServerValidate({
   validators: {
-    onSubmit: z.object({
-      id: z.string().min(1),
-    }),
+    onSubmit: intentDeleteSchema,
+  },
+});
+
+const onCreateValidate = createServerValidate({
+  validators: {
+    onSubmit: intentCreateSchema,
   },
 });
 
 export async function action(args: Route.ActionArgs) {
   const formData = await args.request.formData();
 
-  console.log(
-    "🚀 ~ action ~ args.request.method.toLowerCase():",
-    args.request.method.toLowerCase()
-  );
-  if (args.request.method.toLowerCase() === "delete") {
+  const intent = formData.get("intent");
+
+  if (intent === "delete") {
     const result = await onDeleteValidate(formData);
-    console.log("🚀 ~ action ~ result:", JSON.stringify(result, null, 2));
 
     if (!result.success) {
       return result.errors.formState;
@@ -117,7 +135,29 @@ export async function action(args: Route.ActionArgs) {
     return null;
   }
 
-  const result = await serverValidate(formData);
+  if (intent === "create") {
+    const result = await onCreateValidate(formData);
+
+    if (!result.success) {
+      return result.errors.formState;
+    }
+
+    const auth = await getAuth(args);
+
+    if (!auth.orgId) {
+      throw new Response("Unauthorized", { status: 401 });
+    }
+
+    const { intent: _, ...resultData } = result.data;
+
+    await createRoute({
+      ...resultData,
+      locationOrganizationId: auth.orgId,
+      locationSlug: args.params.slug,
+    });
+  }
+
+  const result = await onUpdateValidate(formData);
 
   if (!result.success) {
     return result.errors.formState;
@@ -129,7 +169,9 @@ export async function action(args: Route.ActionArgs) {
     throw new Response("Unauthorized", { status: 401 });
   }
 
-  const route = await updateRoute(result.data);
+  const { intent: _, ...resultData } = result.data;
+
+  const route = await updateRoute(resultData);
 
   return redirect(`${args.request.url}?routeId=${route.id}`);
 }
@@ -168,6 +210,28 @@ export default function Route({
               editor.setSelectedShapes([shapeId]);
             }
 
+            editor.sideEffects.registerAfterCreateHandler("shape", (shape) => {
+              if (!isRouteShape(shape)) {
+                return;
+              }
+
+              const formData = new FormData();
+              formData.append("intent", "create");
+              formData.append("id", shape.props.id);
+              formData.append("x", shape.x.toString());
+              formData.append("y", shape.y.toString());
+              formData.append("grade", shape.props.grade);
+              formData.append("color", shape.props.color);
+              formData.append("locationId", loaderData.activeLocation.id);
+              if (shape.props.sector) {
+                formData.append("sector", shape.props.sector);
+              }
+
+              submit(formData, {
+                method: "POST",
+              });
+            });
+
             editor.sideEffects.registerAfterChangeHandler(
               "instance_page_state",
               () => {
@@ -192,6 +256,7 @@ export default function Route({
                     const shape = editor.getShape(selectedRoute.current);
                     if (isRouteShape(shape)) {
                       const formData = new FormData();
+                      formData.append("intent", "update");
                       formData.append("id", shape.props.id);
                       formData.append("x", shape.x.toString());
                       formData.append("y", shape.y.toString());
@@ -311,13 +376,14 @@ function EditRouteForm({
 
   const form = useForm({
     defaultValues: {
+      intent: "update",
       id,
       color: color,
       grade: grade,
       sector: sector,
     },
     validators: {
-      onSubmit: validators.onSubmit,
+      onSubmit: intentUpdateSchema,
     },
     transform: useTransform(
       (baseForm) => {
@@ -325,6 +391,7 @@ function EditRouteForm({
           return baseForm;
         }
 
+        // @ts-expect-error
         return mergeForm(baseForm, actionData);
       },
       [actionData]
@@ -339,6 +406,12 @@ function EditRouteForm({
         {formErrors.map((error) => (
           <p key={error as string}>{error}</p>
         ))}
+        <form.Field
+          name="intent"
+          children={(field) => (
+            <input type="hidden" name={field.name} value={field.state.value} />
+          )}
+        />
         <form.Field
           name="id"
           children={(field) => (
@@ -412,12 +485,13 @@ function EditRouteForm({
           });
         }}
       >
+        <input type="hidden" name="id" value={id} />
         <Button
           className="w-full mt-4"
           type="submit"
           variant="destructive"
-          name="id"
-          value={id}
+          name="intent"
+          value="delete"
         >
           Delete
         </Button>
