@@ -5,7 +5,6 @@ import {
   type TLComponents,
   type TLShape,
   type TLGeoShape,
-  type TLEditorSnapshot,
   createShapeId,
 } from "tldraw";
 import { PolygonShapeUtil } from "./tldraw/shape-utils/polygon-shape-util";
@@ -18,13 +17,15 @@ import {
 } from "./tldraw/shape-utils/route-shape-util";
 import type { Log, Route } from "@prisma/client";
 
-const customShapesUtils = [PolygonShapeUtil, RouteShapeUtil];
-const customTools = [MemberTool];
-
 type TldrawEditorProps = {
   map: Record<string, unknown> | undefined;
   routes: Array<Route & { Log?: Log[] }>;
-} & Partial<Pick<React.ComponentPropsWithoutRef<typeof Tldraw>, "onMount">>;
+} & Partial<
+  Pick<
+    React.ComponentPropsWithoutRef<typeof Tldraw>,
+    "onMount" | "initialState" | "shapeUtils" | "tools"
+  >
+>;
 
 const components: TLComponents = {
   Toolbar: null,
@@ -38,10 +39,16 @@ const components: TLComponents = {
   ShapeIndicators: TldrawShapeIndicators,
 };
 
-export function Map({ map, routes, onMount }: TldrawEditorProps) {
+export function Map({
+  map,
+  routes,
+  onMount,
+
+  ...props
+}: TldrawEditorProps) {
   const store = React.useMemo(() => {
     return createTLStore({
-      shapeUtils: [...defaultShapeUtils, ...customShapesUtils],
+      shapeUtils: [...defaultShapeUtils, ...(props.shapeUtils ?? [])],
       snapshot: map,
     });
     // TODO change the map prop to be a string
@@ -50,9 +57,6 @@ export function Map({ map, routes, onMount }: TldrawEditorProps) {
   return (
     <div className="absolute inset-0 [&_*.tl-background]:bg-white border-x border-zinc-950/5 ">
       <Tldraw
-        initialState="member-tool"
-        shapeUtils={customShapesUtils}
-        tools={customTools}
         components={components}
         forceMobile
         store={store}
@@ -104,6 +108,7 @@ export function Map({ map, routes, onMount }: TldrawEditorProps) {
 
           onMount?.(editor);
         }}
+        {...props}
       />
     </div>
   );

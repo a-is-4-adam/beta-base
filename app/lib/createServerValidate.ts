@@ -61,7 +61,7 @@ export const createServerValidate =
     if (!parsed.issues) {
       return {
         success: true,
-        data: values,
+        data: parsed.value,
       };
     }
 

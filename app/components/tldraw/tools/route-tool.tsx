@@ -1,5 +1,5 @@
 import { StateNode, type TLStateNodeConstructor, Vec } from "@tldraw/editor";
-import { isRouteShape } from "@/components/tldraw/shape-utils/route-shape-util";
+import { isRouteShape } from "../shape-utils/route-shape-util";
 
 class Dragging extends StateNode {
   static override id = "dragging";
@@ -74,17 +74,29 @@ class Idle extends StateNode {
       this.editor.setSelectedShapes([existingShape.id]);
     } else {
       this.editor.setSelectedShapes([]);
+      this.editor.setHoveredShape(null);
     }
   }
 
   override onPointerMove(): void {
+    if (
+      this.editor.getSelectedShapes().length &&
+      this.editor.inputs.isDragging
+    ) {
+      this.editor.setCurrentTool("select.translating");
+      return;
+    }
+
     const { currentPagePoint } = this.editor.inputs;
 
-    const existingShapes = this.editor.getShapesAtPoint(currentPagePoint, {
-      hitInside: true,
-    });
+    const [existingShape, ...others] = this.editor.getShapesAtPoint(
+      currentPagePoint,
+      {
+        hitInside: true,
+      }
+    );
 
-    if (existingShapes.some(isRouteShape)) {
+    if (existingShape) {
       this.editor.setCursor({ type: "default" });
     } else {
       this.editor.setCursor({ type: "grab" });
@@ -96,6 +108,10 @@ class Idle extends StateNode {
   }
 
   override onLongPress() {
+    if (this.editor.getSelectedShapes().length) {
+      this.editor.setCurrentTool("select.translating");
+      return;
+    }
     this.parent.transition("dragging");
   }
 
@@ -112,8 +128,8 @@ class Idle extends StateNode {
   }
 }
 
-export class MemberTool extends StateNode {
-  static override id = "member-tool";
+export class RouteTool extends StateNode {
+  static override id = "route-tool";
   static override initial = "idle";
   static override isLockable = false;
   static override children(): TLStateNodeConstructor[] {

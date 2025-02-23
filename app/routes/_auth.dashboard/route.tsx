@@ -34,7 +34,13 @@ import { createShapeId, useValue, type Editor } from "tldraw";
 import {
   isRouteShape,
   ROUTE_SHAPE,
+  RouteShapeUtil,
 } from "@/components/tldraw/shape-utils/route-shape-util";
+import { PolygonShapeUtil } from "@/components/tldraw/shape-utils/polygon-shape-util";
+import { MemberTool } from "@/components/tldraw/tools/member-tool";
+
+const customShapesUtils = [PolygonShapeUtil, RouteShapeUtil];
+const customTools = [MemberTool];
 
 export async function loader(args: Route.LoaderArgs) {
   const publicMetadata = await getUserPublicMetadata(args);
@@ -132,6 +138,9 @@ export default function Route({
     <>
       <div className="relative h-full -mx-4 w-[calc(100%+var(--spacing)*8)]">
         <Map
+          initialState="member-tool"
+          shapeUtils={customShapesUtils}
+          tools={customTools}
           map={map}
           routes={loaderData.routes}
           onMount={(editor) => {
