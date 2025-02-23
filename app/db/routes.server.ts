@@ -32,3 +32,10 @@ export function updateRoute(data: {
     data,
   });
 }
+
+export function deleteRoute(id: string) {
+  return prismaClientHttp.route.update({
+    where: { id, deletedAt: null },
+    data: { deletedAt: new Date() },
+  });
+}

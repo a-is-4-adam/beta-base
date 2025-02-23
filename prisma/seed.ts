@@ -1006,7 +1006,7 @@ async function main() {
   await prisma.route.createMany({
     data: [
       {
-        grade: "v0",
+        grade: "VB",
         color: "yellow",
         sector: "cove",
         x: 100,
@@ -1015,7 +1015,7 @@ async function main() {
         locationSlug: enoggera.slug,
       },
       {
-        grade: "v3",
+        grade: "V3",
         color: "green",
         sector: "prow",
         x: 200,

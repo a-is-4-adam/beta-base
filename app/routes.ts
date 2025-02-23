@@ -21,7 +21,7 @@ export default [
           index("routes/_auth.admin.locations.$slug.index/route.tsx"),
           route(
             "routes/edit",
-            "routes/_auth.admin.locations.$slug.routes.edit/routes.tsx"
+            "routes/_auth.admin.locations.$slug.routes.edit/route.tsx"
           ),
         ]),
       ]),

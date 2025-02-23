@@ -14,7 +14,7 @@ import {
 
 export const DEFAULT_ROUTE_RADIUS = 20;
 export const DEFAULT_ROUTE_COLOR = "yellow";
-export const DEFAULT_ROUTE_GRADE = "v0";
+export const DEFAULT_ROUTE_GRADE = "V0";
 export const ROUTE_SHAPE = "route";
 
 export type RouteShape = TLBaseShape<
