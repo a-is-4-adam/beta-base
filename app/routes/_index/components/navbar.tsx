@@ -1,4 +1,5 @@
 import { Button, buttonVariants } from "@/components/ui/button";
+import { SignedIn, SignedOut } from "@clerk/react-router";
 import { Github } from "lucide-react";
 import { Link } from "react-router";
 
@@ -15,12 +16,28 @@ export default function Navbar() {
           </Link> */}
         </nav>
         <div className="flex items-center space-x-4">
-          <Link to="/sign-in" className={buttonVariants({ variant: "ghost" })}>
-            Sign in
-          </Link>
-          <Link to="/sign-up" className={buttonVariants({ variant: "ghost" })}>
-            Sign up
-          </Link>
+          <SignedOut>
+            <Link
+              to="/sign-in"
+              className={buttonVariants({ variant: "ghost" })}
+            >
+              Sign in
+            </Link>
+            <Link
+              to="/sign-up"
+              className={buttonVariants({ variant: "ghost" })}
+            >
+              Sign up
+            </Link>
+          </SignedOut>
+          <SignedIn>
+            <Link
+              to="/dashboard"
+              className={buttonVariants({ variant: "ghost" })}
+            >
+              Dashboard
+            </Link>
+          </SignedIn>
         </div>
       </div>
     </header>

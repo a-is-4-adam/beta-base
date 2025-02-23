@@ -3,7 +3,6 @@ import { getUserOrganisationList } from "@/server/clerk";
 import { useAuth, useOrganizationList } from "@clerk/react-router";
 import { redirect } from "react-router";
 import type { Route } from "./+types/route";
-import { getAuth } from "@clerk/react-router/ssr.server";
 import { Button } from "@/components/ui/button";
 import { CheckIcon } from "lucide-react";
 
