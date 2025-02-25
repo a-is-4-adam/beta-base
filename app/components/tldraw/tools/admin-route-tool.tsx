@@ -1,81 +1,24 @@
-import {
-  createShapeId,
-  StateNode,
-  type TLStateNodeConstructor,
-  Vec,
-} from "tldraw";
+import { createShapeId, StateNode, type TLStateNodeConstructor } from "tldraw";
 import {
   DEFAULT_ROUTE_RADIUS,
   isRouteShape,
   ROUTE_SHAPE,
 } from "../shape-utils/route-shape-util";
 import { createId } from "@paralleldrive/cuid2";
-
-class Dragging extends StateNode {
-  static override id = "dragging";
-
-  initialCamera = new Vec();
-
-  override onEnter() {
-    this.initialCamera = Vec.From(this.editor.getCamera());
-    this.update();
-  }
-
-  override onPointerMove() {
-    this.update();
-  }
-
-  override onPointerUp() {
-    this.complete();
-  }
-
-  override onCancel() {
-    this.parent.transition("idle");
-  }
-
-  override onComplete() {
-    this.complete();
-  }
-
-  private update() {
-    const { initialCamera, editor } = this;
-    const { currentScreenPoint, originScreenPoint } = editor.inputs;
-
-    const delta = Vec.Sub(currentScreenPoint, originScreenPoint).div(
-      editor.getZoomLevel()
-    );
-    if (delta.len2() === 0) return;
-    editor.setCamera(initialCamera.clone().add(delta));
-  }
-
-  private complete() {
-    const { editor } = this;
-    const { pointerVelocity } = editor.inputs;
-
-    const velocityAtPointerUp = Math.min(pointerVelocity.len(), 2);
-
-    if (velocityAtPointerUp > 0.1) {
-      this.editor.slideCamera({
-        speed: velocityAtPointerUp,
-        direction: pointerVelocity,
-      });
-    }
-
-    this.parent.transition("idle");
-  }
-}
+import { Dragging } from "./state-nodes/dragging";
 
 class Idle extends StateNode {
   static override id = "idle";
 
   override onEnter() {
-    this.editor.setCursor({ type: "grab", rotation: 0 });
+    this.editor.setCursor({ type: "cross", rotation: 0 });
   }
 
   override onPointerDown(): void {
     const { currentPagePoint } = this.editor.inputs;
 
     const existingShape = this.editor.getShapeAtPoint(currentPagePoint, {
+      margin: DEFAULT_ROUTE_RADIUS,
       hitFrameInside: true,
       hitInside: true,
     });
@@ -112,17 +55,16 @@ class Idle extends StateNode {
 
     const { currentPagePoint } = this.editor.inputs;
 
-    const [existingShape, ...others] = this.editor.getShapesAtPoint(
-      currentPagePoint,
-      {
-        hitInside: true,
-      }
-    );
+    const existingShape = this.editor.getShapeAtPoint(currentPagePoint, {
+      margin: DEFAULT_ROUTE_RADIUS,
+      hitFrameInside: true,
+      hitInside: true,
+    });
 
-    if (existingShape) {
+    if (existingShape && isRouteShape(existingShape)) {
       this.editor.setCursor({ type: "default" });
     } else {
-      this.editor.setCursor({ type: "grab" });
+      this.editor.setCursor({ type: "cross" });
     }
 
     if (this.editor.inputs.isDragging) {
@@ -135,7 +77,6 @@ class Idle extends StateNode {
       this.editor.setCurrentTool("select.translating");
       return;
     }
-    this.parent.transition("dragging");
   }
 
   override onCancel() {
@@ -151,8 +92,8 @@ class Idle extends StateNode {
   }
 }
 
-export class RouteTool extends StateNode {
-  static override id = "route-tool";
+export class AdminRouteTool extends StateNode {
+  static override id = "admin-route-tool";
   static override initial = "idle";
   static override isLockable = false;
   static override children(): TLStateNodeConstructor[] {

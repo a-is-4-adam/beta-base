@@ -1,5 +1,8 @@
-import { StateNode, type TLStateNodeConstructor, Vec } from "@tldraw/editor";
-import { isRouteShape } from "@/components/tldraw/shape-utils/route-shape-util";
+import { StateNode, type TLStateNodeConstructor, Vec } from "tldraw";
+import {
+  DEFAULT_ROUTE_RADIUS,
+  isRouteShape,
+} from "../shape-utils/route-shape-util";
 import { Dragging } from "./state-nodes/dragging";
 
 class Idle extends StateNode {
@@ -13,6 +16,7 @@ class Idle extends StateNode {
     const { currentPagePoint } = this.editor.inputs;
 
     const existingShape = this.editor.getShapeAtPoint(currentPagePoint, {
+      margin: DEFAULT_ROUTE_RADIUS,
       hitFrameInside: true,
       hitInside: true,
     });
@@ -21,17 +25,28 @@ class Idle extends StateNode {
       this.editor.setSelectedShapes([existingShape.id]);
     } else {
       this.editor.setSelectedShapes([]);
+      this.editor.setHoveredShape(null);
     }
   }
 
   override onPointerMove(): void {
+    if (
+      this.editor.getSelectedShapes().length &&
+      this.editor.inputs.isDragging
+    ) {
+      this.editor.setCurrentTool("select.translating");
+      return;
+    }
+
     const { currentPagePoint } = this.editor.inputs;
 
-    const existingShapes = this.editor.getShapesAtPoint(currentPagePoint, {
+    const existingShape = this.editor.getShapeAtPoint(currentPagePoint, {
+      margin: DEFAULT_ROUTE_RADIUS,
+      hitFrameInside: true,
       hitInside: true,
     });
 
-    if (existingShapes.some(isRouteShape)) {
+    if (existingShape && isRouteShape(existingShape)) {
       this.editor.setCursor({ type: "default" });
     } else {
       this.editor.setCursor({ type: "grab" });
@@ -43,6 +58,10 @@ class Idle extends StateNode {
   }
 
   override onLongPress() {
+    if (this.editor.getSelectedShapes().length) {
+      this.editor.setCurrentTool("select.translating");
+      return;
+    }
     this.parent.transition("dragging");
   }
 
@@ -59,8 +78,8 @@ class Idle extends StateNode {
   }
 }
 
-export class MemberTool extends StateNode {
-  static override id = "member-tool";
+export class AdminHandTool extends StateNode {
+  static override id = "admin-hand-tool";
   static override initial = "idle";
   static override isLockable = false;
   static override children(): TLStateNodeConstructor[] {

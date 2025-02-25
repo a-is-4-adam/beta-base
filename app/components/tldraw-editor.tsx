@@ -7,14 +7,9 @@ import {
   type TLGeoShape,
   createShapeId,
 } from "tldraw";
-import { PolygonShapeUtil } from "./tldraw/shape-utils/polygon-shape-util";
 import React from "react";
 import { TldrawShapeIndicators } from "@/components/tldraw/shape-indicators";
-import { MemberTool } from "@/components/tldraw/tools/member-tool";
-import {
-  ROUTE_SHAPE,
-  RouteShapeUtil,
-} from "./tldraw/shape-utils/route-shape-util";
+import { ROUTE_SHAPE } from "./tldraw/shape-utils/route-shape-util";
 import type { Log, Route } from "@prisma/client";
 
 type TldrawEditorProps = {
@@ -23,7 +18,13 @@ type TldrawEditorProps = {
 } & Partial<
   Pick<
     React.ComponentPropsWithoutRef<typeof Tldraw>,
-    "onMount" | "initialState" | "shapeUtils" | "tools"
+    | "onMount"
+    | "initialState"
+    | "shapeUtils"
+    | "tools"
+    | "overrides"
+    | "components"
+    | "assetUrls"
   >
 >;
 
@@ -43,7 +44,7 @@ export function Map({
   map,
   routes,
   onMount,
-
+  components: componentsProp = {},
   ...props
 }: TldrawEditorProps) {
   const store = React.useMemo(() => {
@@ -57,7 +58,10 @@ export function Map({
   return (
     <div className="absolute inset-0 [&_*.tl-background]:bg-white border-x border-zinc-950/5 ">
       <Tldraw
-        components={components}
+        components={{
+          ...components,
+          ...componentsProp,
+        }}
         forceMobile
         store={store}
         onMount={(editor) => {

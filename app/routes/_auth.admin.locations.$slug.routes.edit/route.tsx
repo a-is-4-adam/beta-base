@@ -26,7 +26,21 @@ import {
   useExternalTldrawEditor,
 } from "@/components/external-tldraw-editor-context";
 import React from "react";
-import { createShapeId, useValue, type Editor, type TLShapeId } from "tldraw";
+import {
+  createShapeId,
+  DefaultKeyboardShortcutsDialog,
+  DefaultKeyboardShortcutsDialogContent,
+  DefaultToolbar,
+  TldrawUiMenuItem,
+  useIsToolSelected,
+  useTools,
+  useValue,
+  type Editor,
+  type TLComponents,
+  type TLShapeId,
+  type TLUiAssetUrlOverrides,
+  type TLUiOverrides,
+} from "tldraw";
 import {
   isRouteShape,
   ROUTE_SHAPE,
@@ -34,13 +48,77 @@ import {
 } from "@/components/tldraw/shape-utils/route-shape-util";
 import { getAuth } from "@clerk/react-router/ssr.server";
 import { PolygonShapeUtil } from "@/components/tldraw/shape-utils/polygon-shape-util";
-import { RouteTool } from "@/components/tldraw/tools/route-tool";
+import { AdminRouteTool } from "@/components/tldraw/tools/admin-route-tool";
+import { AdminHandTool } from "@/components/tldraw/tools/admin-hand-tool";
 import { ColorRadioGroup } from "./-components/color-radio-group";
 import { GradeSelect } from "./-components/grade-select";
 import { SectorSelect } from "./-components/sector-select";
 
 const customShapesUtils = [PolygonShapeUtil, RouteShapeUtil];
-const customTools = [RouteTool];
+const customTools = [AdminRouteTool, AdminHandTool];
+
+const uiOverrides: TLUiOverrides = {
+  tools(editor, tools) {
+    tools["admin-hand-tool"] = {
+      id: "admin-hand-tool",
+      icon: "hand-icon",
+      label: "Hand",
+      kbd: "h",
+      onSelect: () => {
+        editor.setCurrentTool("admin-hand-tool");
+      },
+    };
+
+    tools["admin-route-tool"] = {
+      id: "admin-route-tool",
+      icon: "route-add",
+      label: "Route",
+      kbd: "r",
+      onSelect: () => {
+        editor.setCurrentTool("admin-route-tool");
+      },
+    };
+
+    return tools;
+  },
+};
+
+const tldrawComponents: TLComponents = {
+  Toolbar: (props) => {
+    const tools = useTools();
+    const isHandToolSelected = useIsToolSelected(tools["admin-hand-tool"]);
+    const isRouteToolSelected = useIsToolSelected(tools["admin-route-tool"]);
+    return (
+      <DefaultToolbar {...props}>
+        <TldrawUiMenuItem
+          {...tools["admin-hand-tool"]}
+          isSelected={isHandToolSelected}
+        />
+        <TldrawUiMenuItem
+          {...tools["admin-route-tool"]}
+          isSelected={isRouteToolSelected}
+        />
+      </DefaultToolbar>
+    );
+  },
+
+  KeyboardShortcutsDialog: (props) => {
+    const tools = useTools();
+    return (
+      <DefaultKeyboardShortcutsDialog {...props}>
+        <DefaultKeyboardShortcutsDialogContent />
+        <TldrawUiMenuItem {...tools["admin-hand-tool"]} />
+      </DefaultKeyboardShortcutsDialog>
+    );
+  },
+};
+
+const customAssetUrls: TLUiAssetUrlOverrides = {
+  icons: {
+    "hand-icon": "/assets/hand.svg",
+    "route-add": "/assets/route-add.svg",
+  },
+};
 
 export const handle = {
   breadcrumb: "Edit routes",
@@ -196,7 +274,7 @@ export default function Route({
     <>
       <div className="relative h-full -mx-4 w-[calc(100%+var(--spacing)*8)]">
         <Map
-          initialState="route-tool"
+          initialState="admin-hand-tool"
           shapeUtils={customShapesUtils}
           tools={customTools}
           map={map}
@@ -204,6 +282,9 @@ export default function Route({
             ...r,
             Log: [],
           }))}
+          overrides={uiOverrides}
+          components={tldrawComponents}
+          assetUrls={customAssetUrls}
           onMount={(editor) => {
             if (routeId) {
               const shapeId = createShapeId(routeId);
@@ -250,7 +331,7 @@ export default function Route({
 
                 if (isPrevTranslating && editor.isIn("select.idle")) {
                   editor.setSelectedShapes([]);
-                  editor.setCurrentTool("route-tool");
+                  editor.setCurrentTool("admin-route-tool");
 
                   if (selectedRoute.current) {
                     const shape = editor.getShape(selectedRoute.current);
@@ -271,10 +352,10 @@ export default function Route({
                 }
 
                 if (
-                  prevTool.current === "route-tool.idle" &&
+                  prevTool.current === "admin-route-tool.idle" &&
                   editor.isIn("select.idle")
                 ) {
-                  editor.setCurrentTool("route-tool");
+                  editor.setCurrentTool("admin-route-tool");
                 }
 
                 prevTool.current = editor.getCurrentTool()?.getPath();

@@ -6,7 +6,7 @@ import {
   useTransform,
 } from "@tanstack/react-form";
 import type { Route } from "./+types/route";
-import { useFetcher, useFetchers } from "react-router";
+import { redirect, useFetcher, useFetchers } from "react-router";
 import { z } from "zod";
 import {
   buildServerError,
@@ -94,7 +94,7 @@ export async function action(args: Route.ActionArgs) {
     },
   });
 
-  return null;
+  return redirect("/dashboard");
 }
 
 export default function Route({

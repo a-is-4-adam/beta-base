@@ -462,10 +462,12 @@ const SidebarMenuButton = React.forwardRef<
       size = "default",
       tooltip,
       className,
+      onClick,
       ...props
     },
     ref
   ) => {
+    const { setOpenMobile } = useSidebar();
     const Comp = asChild ? Slot : "button";
 
     const button = (
@@ -481,6 +483,10 @@ const SidebarMenuButton = React.forwardRef<
           }),
           className
         )}
+        onClick={(e) => {
+          setOpenMobile(false);
+          onClick?.(e);
+        }}
         {...props}
       />
     );
