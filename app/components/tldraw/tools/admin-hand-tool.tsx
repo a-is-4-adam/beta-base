@@ -65,6 +65,20 @@ class Idle extends StateNode {
     this.parent.transition("dragging");
   }
 
+  override onDoubleClick(): void {
+    const { currentPagePoint } = this.editor.inputs;
+
+    const existingShape = this.editor.getShapeAtPoint(currentPagePoint, {
+      margin: DEFAULT_ROUTE_RADIUS,
+      hitFrameInside: true,
+      hitInside: true,
+    });
+
+    if (existingShape && isRouteShape(existingShape)) {
+      this.editor.deleteShapes([existingShape.id]);
+    }
+  }
+
   override onCancel() {
     this.parent.transition("idle");
   }

@@ -88,11 +88,16 @@ export async function action(args: Route.ActionArgs) {
 
   const clerkClient = getClerkClient();
 
-  await clerkClient.users.updateUserMetadata(userId, {
+  const updatedUser = await clerkClient.users.updateUserMetadata(userId, {
     publicMetadata: {
       activeLocationId: result.data.id,
     },
   });
+
+  if (updatedUser.publicMetadata.activeLocationId !== result.data.id) {
+    return buildServerError("Failed to switch location", result.data).errors
+      .formState;
+  }
 
   return redirect("/dashboard");
 }

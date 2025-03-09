@@ -62,6 +62,10 @@ export function Map({
           ...components,
           ...componentsProp,
         }}
+        // hides toolbar_extras
+        options={{
+          actionShortcutsLocation: "menu",
+        }}
         forceMobile
         store={store}
         onMount={(editor) => {

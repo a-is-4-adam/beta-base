@@ -313,6 +313,18 @@ export default function Route({
               });
             });
 
+            editor.sideEffects.registerAfterDeleteHandler("shape", (shape) => {
+              if (isRouteShape(shape)) {
+                const formData = new FormData();
+                formData.append("intent", "delete");
+                formData.append("id", shape.props.id);
+
+                submit(formData, {
+                  method: "DELETE",
+                });
+              }
+            });
+
             editor.sideEffects.registerAfterChangeHandler(
               "instance_page_state",
               () => {

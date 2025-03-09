@@ -1,4 +1,9 @@
-import { createShapeId, StateNode, type TLStateNodeConstructor } from "tldraw";
+import {
+  createShapeId,
+  StateNode,
+  type TLClickEventInfo,
+  type TLStateNodeConstructor,
+} from "tldraw";
 import {
   DEFAULT_ROUTE_RADIUS,
   isRouteShape,
@@ -76,6 +81,20 @@ class Idle extends StateNode {
     if (this.editor.getSelectedShapes().length) {
       this.editor.setCurrentTool("select.translating");
       return;
+    }
+  }
+
+  override onDoubleClick(): void {
+    const { currentPagePoint } = this.editor.inputs;
+
+    const existingShape = this.editor.getShapeAtPoint(currentPagePoint, {
+      margin: DEFAULT_ROUTE_RADIUS,
+      hitFrameInside: true,
+      hitInside: true,
+    });
+
+    if (existingShape && isRouteShape(existingShape)) {
+      this.editor.deleteShapes([existingShape.id]);
     }
   }
 
