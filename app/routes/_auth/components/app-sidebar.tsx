@@ -1,18 +1,16 @@
 import * as React from "react";
 
-import { OrganizationSwitcher, UserButton } from "@clerk/clerk-react";
+import { UserButton } from "@clerk/clerk-react";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
-  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "./sidebar";
-
-import { Link } from "react-router";
+import { Link } from "@/components/ui/link";
 
 export function AppSidebar({
   isAdmin,

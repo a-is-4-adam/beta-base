@@ -3,8 +3,8 @@ import { getAuth } from "@clerk/react-router/ssr.server";
 import type { Route } from "./+types/route";
 import { getLocationsByOrganisationId } from "@/db/locations.server";
 import { buttonVariants } from "@/components/ui/button";
-import { Link } from "react-router";
 import { Card, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Link } from "@/components/ui/link";
 
 export const loader = async (args: Route.LoaderArgs) => {
   const { orgId } = await getAuth(args);

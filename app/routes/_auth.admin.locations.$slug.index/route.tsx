@@ -1,9 +1,9 @@
 import { buttonVariants } from "@/components/ui/button";
 import { typographyVariants } from "@/components/ui/typography";
 import { getLocationBySlug } from "@/db/locations.server";
-import { Link } from "react-router";
 import type { Route } from "./+types/route";
 import { Card, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Link } from "@/components/ui/link";
 
 export async function loader(args: Route.LoaderArgs) {
   return {

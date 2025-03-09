@@ -1,5 +1,5 @@
+import { Link } from "@/components/ui/link";
 import { Github, Twitter, Linkedin } from "lucide-react";
-import { Link } from "react-router";
 
 export default function Footer() {
   return (

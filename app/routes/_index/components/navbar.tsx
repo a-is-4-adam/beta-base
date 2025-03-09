@@ -1,7 +1,7 @@
 import { Button, buttonVariants } from "@/components/ui/button";
+import { Link } from "@/components/ui/link";
 import { SignedIn, SignedOut } from "@clerk/react-router";
 import { Github } from "lucide-react";
-import { Link } from "react-router";
 
 export default function Navbar() {
   return (

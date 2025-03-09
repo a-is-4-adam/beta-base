@@ -484,8 +484,8 @@ const SidebarMenuButton = React.forwardRef<
           className
         )}
         onClick={(e) => {
-          setOpenMobile(false);
           onClick?.(e);
+          setOpenMobile(false);
         }}
         {...props}
       />

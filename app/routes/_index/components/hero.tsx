@@ -1,6 +1,6 @@
 import { Button, buttonVariants } from "@/components/ui/button";
+import { Link } from "@/components/ui/link";
 import { SignedIn, SignedOut } from "@clerk/react-router";
-import { Link } from "react-router";
 
 export default function Hero() {
   return (

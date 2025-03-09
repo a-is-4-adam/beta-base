@@ -5,12 +5,16 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useHref,
+  useNavigate,
+  type NavigateOptions,
 } from "react-router";
 import { rootAuthLoader } from "@clerk/react-router/ssr.server";
 
 import type { Route } from "./+types/root";
 import "./app.css";
 import { ClerkProvider } from "@clerk/react-router";
+import { RouterProvider } from "react-aria-components";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -48,14 +52,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App({ loaderData }: Route.ComponentProps) {
+  let navigate = useNavigate();
+
   return (
-    <ClerkProvider
-      loaderData={loaderData}
-      signUpFallbackRedirectUrl="/"
-      signInFallbackRedirectUrl="/"
-    >
-      <Outlet />
-    </ClerkProvider>
+    <RouterProvider navigate={navigate} useHref={useHref}>
+      <ClerkProvider
+        loaderData={loaderData}
+        signUpFallbackRedirectUrl="/"
+        signInFallbackRedirectUrl="/"
+      >
+        <Outlet />
+      </ClerkProvider>
+    </RouterProvider>
   );
 }
 
@@ -86,4 +94,10 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
       )}
     </main>
   );
+}
+
+declare module "react-aria-components" {
+  interface RouterConfig {
+    routerOptions: NavigateOptions;
+  }
 }
