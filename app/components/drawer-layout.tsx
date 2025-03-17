@@ -6,10 +6,13 @@ import {
   useMotionValue,
   useTransform,
 } from "framer-motion";
-import { Dialog, Modal, ModalOverlay } from "react-aria-components";
-import { useState } from "react";
-import { ClientOnly } from "./client-only";
+import { Modal, ModalOverlay } from "react-aria-components";
+import { createContext, useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 
+import { ClientOnly } from "./client-only";
+import { DialogOverlay, Dialog } from "@/components/ui/dialog";
+// import {  } from "react-aria";
 const MotionModal = motion.create(Modal);
 const MotionModalOverlay = motion.create(ModalOverlay);
 
@@ -30,6 +33,8 @@ const SHEET_MARGIN = 34;
 type DrawerLayoutProps = {
   children: React.ReactNode;
   preview: React.ReactNode;
+  isOpen?: boolean;
+  setIsOpen?: (isOpen: boolean) => void;
 };
 
 export function DrawerLayout(props: DrawerLayoutProps) {
@@ -42,14 +47,29 @@ export function DrawerLayout(props: DrawerLayoutProps) {
   );
 }
 
-function DrawerLayoutInner(props: DrawerLayoutProps) {
+function DrawerLayoutInner({
+  isOpen: isOpenProp,
+  setIsOpen: setIsOpenProp,
+  ...props
+}: DrawerLayoutProps) {
+  const ref = useRef<HTMLDivElement>(null);
   let [isOpen, setOpen] = useState(false);
-
   let h = window.innerHeight - SHEET_MARGIN - 86;
   let y = useMotionValue(h);
 
   let bgOpacity = useTransform(y, [0, h], [0.4, 0]);
   let bg = useMotionTemplate`rgba(0, 0, 0, ${bgOpacity})`;
+
+  useEffect(() => {
+    if (isOpenProp) {
+      setTimeout(() => {
+        // document.getElementById("foo")?.focus();
+        console.log(document.activeElement);
+        console.log("🚀 ~ useEffect ~ ref.current:", ref.current);
+      }, 100);
+    }
+  }, [isOpen, isOpenProp]);
+
   return (
     <>
       <motion.div
@@ -58,11 +78,15 @@ function DrawerLayoutInner(props: DrawerLayoutProps) {
         dragConstraints={{ top: 0 }}
         onDragEnd={(e, { offset, velocity }) => {
           if (offset.y < window.innerHeight * 0.1 * -1 || velocity.y > 10) {
-            setOpen(true);
+            if (setIsOpenProp) {
+              setIsOpenProp(true);
+            } else {
+              setOpen(true);
+            }
           }
         }}
       >
-        {!isOpen ? (
+        {!(isOpenProp ?? isOpen) ? (
           <>
             <DragHandle />
             {props.preview}
@@ -70,15 +94,15 @@ function DrawerLayoutInner(props: DrawerLayoutProps) {
         ) : null}
       </motion.div>
       <AnimatePresence>
-        {isOpen && (
+        {(isOpenProp ?? isOpen) && (
           <MotionModalOverlay
             isOpen
-            onOpenChange={setOpen}
+            onOpenChange={setIsOpenProp ?? setOpen}
             className="fixed inset-0 z-10"
             style={{ backgroundColor: bg as any }}
           >
             <MotionModal
-              className="bg-background absolute bottom-0 w-full rounded-t-xl border-2 shadow-lg will-change-transform"
+              className="bg-background absolute bottom-0 w-full rounded-t-xl border-2 shadow-lg will-change-transform px-4 pb-4 outline-none "
               initial={{ y: h }}
               animate={{ y: 0 }}
               exit={{ y: h }}
@@ -93,16 +117,22 @@ function DrawerLayoutInner(props: DrawerLayoutProps) {
               dragConstraints={{ top: 0 }}
               onDragEnd={(e, { offset, velocity }) => {
                 if (offset.y > window.innerHeight * 0.75 || velocity.y > 10) {
-                  setOpen(false);
+                  if (setIsOpenProp) {
+                    setIsOpenProp(false);
+                  } else {
+                    setOpen(false);
+                  }
                 } else {
                   animate(y, 0, { ...inertiaTransition, min: 0, max: 0 });
                 }
               }}
             >
               <DragHandle />
-              <Dialog className="px-4 pb-4 outline-none">
+              <div ref={ref}>
+                {/* <Dialog className="px-4 pb-4 outline-none relative z-50" > */}
                 {props.children}
-              </Dialog>
+              </div>
+              {/* </Dialog> */}
             </MotionModal>
           </MotionModalOverlay>
         )}

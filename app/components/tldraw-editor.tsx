@@ -66,7 +66,6 @@ export function Map({
         options={{
           actionShortcutsLocation: "menu",
         }}
-        forceMobile
         store={store}
         onMount={(editor) => {
           const geoShape = editor.getCurrentPageShapes().find(isGeoShape);

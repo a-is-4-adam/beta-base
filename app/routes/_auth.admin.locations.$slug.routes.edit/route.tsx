@@ -148,7 +148,7 @@ export async function loader(args: Route.LoaderArgs) {
 }
 
 const intentUpdateSchema = z.object({
-  intent: z.literal("update"),
+  intent: z.literal("update").default("update"),
   id: z.string().min(1),
   grade: z.string().optional(),
   color: z.string().optional(),
@@ -158,12 +158,12 @@ const intentUpdateSchema = z.object({
 });
 
 const intentDeleteSchema = z.object({
-  intent: z.literal("delete"),
+  intent: z.literal("delete").default("delete"),
   id: z.string().min(1),
 });
 
 const intentCreateSchema = z.object({
-  intent: z.literal("create"),
+  intent: z.literal("create").default("create"),
   id: z.string().min(1),
   grade: z.string(),
   color: z.string(),
@@ -191,6 +191,7 @@ const onCreateValidate = createServerValidate({
 });
 
 export async function action(args: Route.ActionArgs) {
+  const requestUrl = new URL(args.request.url);
   const formData = await args.request.formData();
 
   const intent = formData.get("intent");
@@ -233,6 +234,10 @@ export async function action(args: Route.ActionArgs) {
       locationOrganizationId: auth.orgId,
       locationSlug: args.params.slug,
     });
+
+    requestUrl.searchParams.set("routeId", resultData.id);
+
+    return redirect(requestUrl.toString());
   }
 
   const result = await onUpdateValidate(formData);
@@ -258,6 +263,9 @@ export default function Route({
   loaderData,
   actionData,
 }: Route.ComponentProps) {
+  const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
+  console.log("🚀 ~ isDrawerOpen:", isDrawerOpen);
+
   const submit = useSubmit();
   const [searchParams] = useSearchParams();
   const routeId = searchParams.get("routeId");
@@ -311,6 +319,9 @@ export default function Route({
               submit(formData, {
                 method: "POST",
               });
+
+              editor.setSelectedShapes([shape.id]);
+              setIsDrawerOpen(true);
             });
 
             editor.sideEffects.registerAfterDeleteHandler("shape", (shape) => {
@@ -380,8 +391,18 @@ export default function Route({
       </div>
       {editor ? (
         <ExternalTldrawEditorProvider value={{ editor }}>
-          <DrawerLayout preview={<DrawerPreview />}>
-            {<DrawerContent actionData={actionData} />}
+          <DrawerLayout
+            preview={<DrawerPreview />}
+            isOpen={isDrawerOpen}
+            setIsOpen={setIsDrawerOpen}
+          >
+            {
+              <DrawerContent
+                actionData={actionData}
+                loaderData={loaderData}
+                setIsDrawerOpen={setIsDrawerOpen}
+              />
+            }
           </DrawerLayout>
         </ExternalTldrawEditorProvider>
       ) : null}
@@ -423,9 +444,13 @@ function DrawerPreview() {
 }
 
 function DrawerContent({
+  loaderData,
   actionData,
+  setIsDrawerOpen,
 }: {
+  loaderData: Route.ComponentProps["loaderData"];
   actionData: Route.ComponentProps["actionData"];
+  setIsDrawerOpen: (isOpen: boolean) => void;
 }) {
   const { editor } = useExternalTldrawEditor();
   const selectedShapes = useValue(
@@ -436,7 +461,11 @@ function DrawerContent({
 
   const [routeShape] = selectedShapes;
 
-  if (selectedShapes.length !== 1 || !isRouteShape(routeShape)) {
+  if (
+    selectedShapes.length !== 1 ||
+    !isRouteShape(routeShape)
+    // !loaderData.routes.find((r) => r.id === routeShape.props.id)
+  ) {
     return <EditRouteEmptyState />;
   }
 
@@ -447,6 +476,7 @@ function DrawerContent({
       grade={routeShape.props.grade}
       color={routeShape.props.color}
       sector={routeShape.props.sector}
+      setIsDrawerOpen={setIsDrawerOpen}
     />
   );
 }
@@ -457,12 +487,14 @@ function EditRouteForm({
   grade,
   color,
   sector,
+  setIsDrawerOpen,
 }: {
   actionData: Route.ComponentProps["actionData"];
   id: string;
   grade: string;
   color: string;
   sector: string | undefined;
+  setIsDrawerOpen: (isOpen: boolean) => void;
 }) {
   const fetcher = useFetcher();
   const { editor } = useExternalTldrawEditor();
@@ -496,9 +528,9 @@ function EditRouteForm({
   return (
     <>
       <fetcher.Form method="POST" className="flex flex-col gap-4">
-        {formErrors.map((error) => (
-          <p key={error as string}>{error}</p>
-        ))}
+        {/* {formErrors.length ? JSON.stringify(formErrors) : null}
+        {JSON.stringify(actionData)} */}
+
         <form.Field
           name="intent"
           children={(field) => (
@@ -576,10 +608,12 @@ function EditRouteForm({
           fetcher.submit(event.currentTarget.form, {
             method: "DELETE",
           });
+          setIsDrawerOpen(false);
         }}
       >
         <input type="hidden" name="id" value={id} />
         <Button
+          id="foo"
           className="w-full mt-4"
           type="submit"
           variant="destructive"

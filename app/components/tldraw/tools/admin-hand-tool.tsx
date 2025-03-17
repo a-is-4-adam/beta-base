@@ -66,6 +66,7 @@ class Idle extends StateNode {
   }
 
   override onDoubleClick(): void {
+    console.log("onDoubleClick");
     const { currentPagePoint } = this.editor.inputs;
 
     const existingShape = this.editor.getShapeAtPoint(currentPagePoint, {
