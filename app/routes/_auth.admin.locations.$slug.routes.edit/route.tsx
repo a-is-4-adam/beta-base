@@ -264,7 +264,6 @@ export default function Route({
   actionData,
 }: Route.ComponentProps) {
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
-  console.log("🚀 ~ isDrawerOpen:", isDrawerOpen);
 
   const submit = useSubmit();
   const [searchParams] = useSearchParams();
@@ -280,7 +279,7 @@ export default function Route({
 
   return (
     <>
-      <div className="relative h-full -mx-4 w-[calc(100%+var(--spacing)*8)]">
+      <div className="relative h-full">
         <Map
           initialState="admin-hand-tool"
           shapeUtils={customShapesUtils}

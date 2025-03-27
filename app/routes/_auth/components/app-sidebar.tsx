@@ -18,7 +18,7 @@ export function AppSidebar({
 }: React.ComponentProps<typeof Sidebar> & { isAdmin: boolean }) {
   return (
     <Sidebar variant="inset" {...props}>
-      <SidebarContent>
+      <SidebarContent className="bg-background rounded-tl-xl rounded-tr-xl">
         <SidebarGroup>
           <SidebarMenu>
             <SidebarMenuItem>
@@ -58,7 +58,7 @@ export function AppSidebar({
           </SidebarGroup>
         ) : null}
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="bg-background rounded-bl-xl rounded-br-xl">
         <SidebarMenu>
           <SidebarMenuItem>
             <UserButton

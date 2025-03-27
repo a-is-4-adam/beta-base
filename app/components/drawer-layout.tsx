@@ -1,40 +1,22 @@
-import {
-  animate,
-  AnimatePresence,
-  motion,
-  useMotionTemplate,
-  useMotionValue,
-  useTransform,
-} from "framer-motion";
-import { Modal, ModalOverlay } from "react-aria-components";
-import { createContext, useEffect, useRef, useState } from "react";
-import { flushSync } from "react-dom";
+import { motion, useMotionValue, animate } from "framer-motion";
+import { useState } from "react";
 
 import { ClientOnly } from "./client-only";
-import { DialogOverlay, Dialog } from "@/components/ui/dialog";
-// import {  } from "react-aria";
-const MotionModal = motion.create(Modal);
-const MotionModalOverlay = motion.create(ModalOverlay);
-
-const inertiaTransition = {
-  type: "inertia" as const,
-  bounceStiffness: 300,
-  bounceDamping: 40,
-  timeConstant: 300,
-};
+import React from "react";
+import { cn } from "@/lib/utils";
 
 const staticTransition = {
   duration: 0.5,
   ease: [0.32, 0.72, 0, 1],
 };
 
-const SHEET_MARGIN = 34;
+const DRAG_HANDLE_HEIGHT = 36;
 
 type DrawerLayoutProps = {
   children: React.ReactNode;
   preview: React.ReactNode;
-  isOpen?: boolean;
-  setIsOpen?: (isOpen: boolean) => void;
+  // isOpen?: boolean;
+  // setIsOpen?: (isOpen: boolean) => void;
 };
 
 export function DrawerLayout(props: DrawerLayoutProps) {
@@ -47,100 +29,79 @@ export function DrawerLayout(props: DrawerLayoutProps) {
   );
 }
 
-function DrawerLayoutInner({
-  isOpen: isOpenProp,
-  setIsOpen: setIsOpenProp,
-  ...props
-}: DrawerLayoutProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  let [isOpen, setOpen] = useState(false);
-  let h = window.innerHeight - SHEET_MARGIN - 86;
-  let y = useMotionValue(h);
+function DrawerLayoutInner() {
+  const [isRefSet, setIsRefSet] = React.useState(false);
 
-  let bgOpacity = useTransform(y, [0, h], [0.4, 0]);
-  let bg = useMotionTemplate`rgba(0, 0, 0, ${bgOpacity})`;
+  const previewRef = React.useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    if (isOpenProp) {
-      setTimeout(() => {
-        // document.getElementById("foo")?.focus();
-        console.log(document.activeElement);
-        console.log("🚀 ~ useEffect ~ ref.current:", ref.current);
-      }, 100);
-    }
-  }, [isOpen, isOpenProp]);
+  const previewHeight =
+    (previewRef.current?.getBoundingClientRect().height ?? 0) +
+    DRAG_HANDLE_HEIGHT;
+
+  const minYPos = window.innerHeight - previewHeight;
+
+  const y = useMotionValue(minYPos);
 
   return (
     <>
+      <div
+        style={{
+          height: previewHeight,
+        }}
+      />
       <motion.div
-        className="w-full bg-background z-10 absolute px-4 pb-2 bottom-0 left-0 right-0 border-t-2 border-x-2 shadow-lg border-border rounded-tl-xl rounded-tr-xl"
+        initial={false}
+        style={{
+          y,
+        }}
+        transition={staticTransition}
         drag="y"
-        dragConstraints={{ top: 0 }}
+        dragConstraints={{ top: 0, bottom: minYPos }}
         onDragEnd={(e, { offset, velocity }) => {
-          if (offset.y < window.innerHeight * 0.1 * -1 || velocity.y > 10) {
-            if (setIsOpenProp) {
-              setIsOpenProp(true);
-            } else {
-              setOpen(true);
-            }
+          if (offset.y > window.innerHeight * 0.75 || velocity.y > 10) {
+            animate(y, minYPos);
+          } else {
+            animate(y, 0);
           }
         }}
-      >
-        {!(isOpenProp ?? isOpen) ? (
-          <>
-            <DragHandle />
-            {props.preview}
-          </>
-        ) : null}
-      </motion.div>
-      <AnimatePresence>
-        {(isOpenProp ?? isOpen) && (
-          <MotionModalOverlay
-            isOpen
-            onOpenChange={setIsOpenProp ?? setOpen}
-            className="fixed inset-0 z-10"
-            style={{ backgroundColor: bg as any }}
-          >
-            <MotionModal
-              className="bg-background absolute bottom-0 w-full rounded-t-xl border-2 shadow-lg will-change-transform px-4 pb-4 outline-none "
-              initial={{ y: h }}
-              animate={{ y: 0 }}
-              exit={{ y: h }}
-              transition={staticTransition}
-              style={{
-                y,
-                top: SHEET_MARGIN,
-                // Extra padding at the bottom to account for rubber band scrolling.
-                paddingBottom: window.screen.height,
-              }}
-              drag="y"
-              dragConstraints={{ top: 0 }}
-              onDragEnd={(e, { offset, velocity }) => {
-                if (offset.y > window.innerHeight * 0.75 || velocity.y > 10) {
-                  if (setIsOpenProp) {
-                    setIsOpenProp(false);
-                  } else {
-                    setOpen(false);
-                  }
-                } else {
-                  animate(y, 0, { ...inertiaTransition, min: 0, max: 0 });
-                }
-              }}
-            >
-              <DragHandle />
-              <div ref={ref}>
-                {/* <Dialog className="px-4 pb-4 outline-none relative z-50" > */}
-                {props.children}
-              </div>
-              {/* </Dialog> */}
-            </MotionModal>
-          </MotionModalOverlay>
+        className={cn(
+          "absolute bg-background bottom-0 left-0 right-0 min-h-full border border-border rounded-tl-lg rounded-tr-lg flex flex-col z-300",
+          isRefSet ? "visible" : "invisible"
         )}
-      </AnimatePresence>
+      >
+        <div className="flex-shrink-0">
+          <DragHandle />
+        </div>
+        <div className="flex-1 bg-green-100">
+          <div
+            ref={(ref) => {
+              setIsRefSet(true);
+              y.set(
+                window.innerHeight -
+                  (ref?.getBoundingClientRect().height ?? 0) -
+                  DRAG_HANDLE_HEIGHT
+              );
+              previewRef.current = ref;
+            }}
+          >
+            <div className="pb-10 bg-red-200" />
+          </div>
+          <div>
+            <div className="pb-[500px] bg-blue-200" />
+          </div>
+        </div>
+      </motion.div>
     </>
   );
 }
 
 function DragHandle() {
-  return <div className="mx-auto w-12 my-4 h-1.5 rounded-full bg-gray-400" />;
+  return (
+    <div
+      className="relative flex items-center justify-center w-full"
+      style={{ height: `${DRAG_HANDLE_HEIGHT}px` }}
+    >
+      <div className="w-12 rounded-full h-1.5 bg-gray-400" />
+    </div>
+  );
 }
