@@ -1,4 +1,4 @@
-import { motion, useMotionValue, animate } from "framer-motion";
+import { motion, useAnimate } from "framer-motion";
 
 import { ClientOnly } from "./client-only";
 import React from "react";
@@ -14,9 +14,58 @@ const DRAG_HANDLE_HEIGHT = 36;
 type DrawerLayoutProps = {
   children?: React.ReactNode;
   preview?: React.ReactNode;
-  // isOpen?: boolean;
-  // setIsOpen?: (isOpen: boolean) => void;
 };
+
+const DrawerContext = React.createContext<
+  | {
+      previewRef: HTMLDivElement | null;
+      setPreviewRef: (el: HTMLDivElement) => void;
+      close: () => void;
+      open: () => void;
+      isOpen: boolean;
+    }
+  | undefined
+>(undefined);
+
+export function DrawerProvider({ children }: { children: React.ReactNode }) {
+  const [previewRef, setPreviewRef] = React.useState<HTMLDivElement | null>(
+    null
+  );
+
+  const [isOpen, setIsOpen] = React.useState(false);
+
+  const close = async () => {
+    setIsOpen(false);
+  };
+
+  const open = async () => {
+    setIsOpen(true);
+  };
+
+  return (
+    <DrawerContext
+      value={{
+        previewRef,
+        setPreviewRef,
+        close,
+        open,
+        isOpen,
+      }}
+    >
+      {children}
+    </DrawerContext>
+  );
+}
+
+export function useDrawerContext() {
+  const ctx = React.useContext(DrawerContext);
+
+  if (!ctx) {
+    throw new Error("useDrawerContext must be used withing DrawerProvider");
+  }
+
+  return ctx;
+}
 
 export function DrawerLayout(props: DrawerLayoutProps) {
   return (
@@ -29,17 +78,12 @@ export function DrawerLayout(props: DrawerLayoutProps) {
 }
 
 function DrawerLayoutInner({ children, preview }: DrawerLayoutProps) {
-  const [isRefSet, setIsRefSet] = React.useState(false);
+  const { previewRef, setPreviewRef, close, open, isOpen } = useDrawerContext();
 
-  const previewRef = React.useRef<HTMLDivElement | null>(null);
+  const [scope, animate] = useAnimate();
 
   const previewHeight =
-    (previewRef.current?.getBoundingClientRect().height ?? 0) +
-    DRAG_HANDLE_HEIGHT;
-
-  const minYPos = window.innerHeight - previewHeight;
-
-  const y = useMotionValue(minYPos);
+    (previewRef?.getBoundingClientRect().height ?? 0) + DRAG_HANDLE_HEIGHT;
 
   return (
     <>
@@ -49,23 +93,30 @@ function DrawerLayoutInner({ children, preview }: DrawerLayoutProps) {
         }}
       />
       <motion.div
+        ref={scope}
         initial={false}
-        style={{
-          y,
+        animate={{
+          y: isOpen ? 0 : window.innerHeight - previewHeight,
         }}
         transition={staticTransition}
         drag="y"
-        dragConstraints={{ top: 0, bottom: minYPos }}
+        dragConstraints={{ top: 0, bottom: window.innerHeight - previewHeight }}
         onDragEnd={(e, { offset, velocity }) => {
           if (offset.y > window.innerHeight * 0.75 || velocity.y > 10) {
-            animate(y, minYPos);
+            if (!isOpen) {
+              animate(scope.current, { y: window.innerHeight - previewHeight });
+            }
+            close();
           } else {
-            animate(y, 0);
+            if (isOpen) {
+              animate(scope.current, { y: 0 });
+            }
+            open();
           }
         }}
         className={cn(
           "absolute bg-background bottom-0 left-0 right-0 min-h-full border border-border rounded-tl-lg rounded-tr-lg flex flex-col z-300",
-          isRefSet ? "visible" : "invisible"
+          previewRef ? "visible" : "invisible"
         )}
       >
         <div className="flex-shrink-0">
@@ -74,13 +125,17 @@ function DrawerLayoutInner({ children, preview }: DrawerLayoutProps) {
         <div className="flex-1">
           <div
             ref={(ref) => {
-              setIsRefSet(true);
-              y.set(
-                window.innerHeight -
-                  (ref?.getBoundingClientRect().height ?? 0) -
-                  DRAG_HANDLE_HEIGHT
-              );
-              previewRef.current = ref;
+              console.log("🚀 ~ DrawerLayoutInner ~ ref:", ref);
+              if (!ref) {
+                return;
+              }
+              setPreviewRef(ref);
+
+              console.log("ref callback", {
+                h: window.innerHeight,
+                rH: ref.getBoundingClientRect().height,
+                t: window.innerHeight - ref.getBoundingClientRect().height,
+              });
             }}
           >
             {preview}

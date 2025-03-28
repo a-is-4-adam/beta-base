@@ -5,7 +5,7 @@ import { redirect, useFetcher, useSearchParams } from "react-router";
 import { Map } from "@/components/tldraw-editor";
 import "tldraw/tldraw.css";
 import { type Prisma } from "@prisma/client";
-import { DrawerLayout } from "@/components/drawer-layout";
+import { DrawerLayout, DrawerProvider } from "@/components/drawer-layout";
 import { Button } from "@/components/ui/button";
 import {
   getActiveRoutesWithLogsByLocationId,
@@ -140,7 +140,7 @@ export default function Route({
     : undefined;
 
   return (
-    <>
+    <DrawerProvider>
       <div className="relative h-full">
         <Map
           initialState="member-tool"
@@ -162,7 +162,7 @@ export default function Route({
           <DrawerLayout preview={<DrawerPreview actionData={actionData} />} />
         </ExternalTldrawEditorProvider>
       ) : null}
-    </>
+    </DrawerProvider>
   );
 }
 

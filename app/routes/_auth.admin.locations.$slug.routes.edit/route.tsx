@@ -1,17 +1,15 @@
 import { prismaClientHttp } from "@/db/db.server";
 import type { Route } from "./+types/route";
 import { getUserPublicMetadata } from "@/server/clerk";
-import {
-  redirect,
-  useActionData,
-  useFetcher,
-  useSearchParams,
-  useSubmit,
-} from "react-router";
+import { redirect, useFetcher, useSearchParams, useSubmit } from "react-router";
 import { Map } from "@/components/tldraw-editor";
 import "tldraw/tldraw.css";
 import { type Prisma } from "@prisma/client";
-import { DrawerLayout } from "@/components/drawer-layout";
+import {
+  DrawerLayout,
+  DrawerProvider,
+  useDrawerContext,
+} from "@/components/drawer-layout";
 import { Button } from "@/components/ui/button";
 import {
   createRoute,
@@ -61,6 +59,7 @@ import { GradeSelect } from "./-components/grade-select";
 import { SectorSelect } from "./-components/sector-select";
 import { cn } from "@/lib/utils";
 import { RouteBadge } from "@/components/route-badge";
+import { animate } from "framer-motion";
 
 const customShapesUtils = [PolygonShapeUtil, RouteShapeUtil];
 const customTools = [AdminRouteTool, AdminHandTool];
@@ -284,7 +283,7 @@ export async function action(args: Route.ActionArgs) {
 
   const route = await updateRoute(resultData);
 
-  return redirect(`${args.request.url}?routeId=${route.id}`);
+  return redirect(`${args.request.url.split("?")[0]}?routeId=${route.id}`);
 }
 
 export default function Route({
@@ -305,7 +304,7 @@ export default function Route({
   const selectedRoute = React.useRef<TLShapeId | undefined>(undefined);
 
   return (
-    <>
+    <DrawerProvider>
       <div className="relative h-full">
         <Map
           initialState="admin-hand-tool"
@@ -368,7 +367,7 @@ export default function Route({
             editor.sideEffects.registerAfterChangeHandler(
               "instance_page_state",
               () => {
-                const currentTool = editor.getCurrentTool()?.getPath();
+                const currentTool = editor.getCurrentTool()?.id;
 
                 if (
                   currentTool === "select.idle" &&
@@ -411,17 +410,17 @@ export default function Route({
           <EditRouteDrawer actionData={actionData} />
         </ExternalTldrawEditorProvider>
       ) : null}
-    </>
+    </DrawerProvider>
   );
 }
 
-const EditRouteDrawer = memo(({ actionData }: DrawerContentProps) => {
+function EditRouteDrawer({ actionData }: DrawerContentProps) {
   return (
     <DrawerLayout preview={<DrawerPreview />}>
       <DrawerContent actionData={actionData} />
     </DrawerLayout>
   );
-});
+}
 
 function EditRouteEmptyState() {
   return (
@@ -517,6 +516,7 @@ function EditRouteForm({
   color: string;
   sector: string | undefined;
 }) {
+  const { close: closeDrawer } = useDrawerContext();
   const fetcher = useFetcher();
   const submit = useSubmit();
   const { editor } = useExternalTldrawEditor();
@@ -547,7 +547,13 @@ function EditRouteForm({
 
   return (
     <>
-      <fetcher.Form method="POST" className="flex flex-col gap-4">
+      <fetcher.Form
+        method="POST"
+        className="flex flex-col gap-4"
+        onSubmit={(e) => {
+          closeDrawer();
+        }}
+      >
         <form.Field
           name="intent"
           children={(field) => (
@@ -633,6 +639,8 @@ function EditRouteForm({
               method: "delete",
             }
           );
+
+          closeDrawer();
         }}
       >
         Delete

@@ -26,21 +26,6 @@ class Idle extends StateNode {
   }
 
   override onPointerDown(info: TLPointerEventInfo) {
-    this.parent.transition("pointing", info);
-  }
-
-  override onCancel() {
-    this.editor.setCurrentTool("select");
-  }
-}
-
-class Pointing extends StateNode {
-  static override id = "pointing";
-
-  override onEnter() {
-    this.editor.stopCameraAnimation();
-    this.editor.setCursor({ type: "grabbing", rotation: 0 });
-
     const { currentPagePoint } = this.editor.inputs;
 
     const existingShape = this.editor.getShapeAtPoint(currentPagePoint, {
@@ -55,6 +40,21 @@ class Pointing extends StateNode {
       this.editor.setSelectedShapes([]);
       this.editor.setHoveredShape(null);
     }
+
+    this.parent.transition("pointing", info);
+  }
+
+  override onCancel() {
+    this.editor.setCurrentTool("admin-hand-tool");
+  }
+}
+
+class Pointing extends StateNode {
+  static override id = "pointing";
+
+  override onEnter() {
+    this.editor.stopCameraAnimation();
+    this.editor.setCursor({ type: "grabbing", rotation: 0 });
   }
 
   override onLongPress() {

@@ -10,7 +10,15 @@ import {
   ROUTE_SHAPE,
 } from "../shape-utils/route-shape-util";
 import { createId } from "@paralleldrive/cuid2";
-import { Dragging } from "./state-nodes/dragging";
+
+export class AdminRouteTool extends StateNode {
+  static override id = "admin-route-tool";
+  static override initial = "idle";
+  static override isLockable = false;
+  static override children(): TLStateNodeConstructor[] {
+    return [Idle, Pointing];
+  }
+}
 
 class Idle extends StateNode {
   static override id = "idle";
@@ -19,21 +27,7 @@ class Idle extends StateNode {
     this.editor.setCursor({ type: "cross", rotation: 0 });
   }
 
-  override onPointerDown(info: TLPointerEventInfo): void {
-    const { currentPagePoint } = this.editor.inputs;
-
-    const existingShape = this.editor.getShapeAtPoint(currentPagePoint, {
-      margin: DEFAULT_ROUTE_RADIUS,
-      hitFrameInside: true,
-      hitInside: true,
-    });
-
-    if (existingShape && isRouteShape(existingShape)) {
-      this.editor.setSelectedShapes([existingShape.id]);
-    }
-  }
-
-  override onPointerUp(): void {
+  override onPointerDown(info: TLPointerEventInfo) {
     const { currentPagePoint } = this.editor.inputs;
 
     const existingShape = this.editor.getShapeAtPoint(currentPagePoint, {
@@ -47,89 +41,74 @@ class Idle extends StateNode {
     } else {
       this.editor.setSelectedShapes([]);
       this.editor.setHoveredShape(null);
-      const id = createId();
-      const { currentPagePoint } = this.editor.inputs;
-
-      this.editor.createShape({
-        type: ROUTE_SHAPE,
-        id: createShapeId(id),
-        x: currentPagePoint.x - DEFAULT_ROUTE_RADIUS,
-        y: currentPagePoint.y - DEFAULT_ROUTE_RADIUS,
-
-        props: {
-          id,
-        },
-      });
     }
+
+    this.parent.transition("pointing", info);
   }
 
-  override onPointerMove(): void {
-    if (
-      this.editor.getSelectedShapes().length &&
-      this.editor.inputs.isDragging
-    ) {
-      this.editor.setCurrentTool("select.translating");
+  override onCancel() {
+    this.editor.setCurrentTool("admin-route-tool");
+  }
+}
+
+class Pointing extends StateNode {
+  static override id = "pointing";
+
+  override onEnter() {
+    this.editor.setCursor({ type: "grabbing", rotation: 0 });
+  }
+
+  override onPointerUp(): void {
+    const [selectedShape] = this.editor.getSelectedShapes();
+
+    if (isRouteShape(selectedShape)) {
+      this.editor.setSelectedShapes([selectedShape.id]);
+      this.complete();
       return;
     }
 
+    const id = createId();
     const { currentPagePoint } = this.editor.inputs;
 
-    const existingShape = this.editor.getShapeAtPoint(currentPagePoint, {
-      margin: DEFAULT_ROUTE_RADIUS,
-      hitFrameInside: true,
-      hitInside: true,
+    this.editor.createShape({
+      type: ROUTE_SHAPE,
+      id: createShapeId(id),
+      x: currentPagePoint.x - DEFAULT_ROUTE_RADIUS,
+      y: currentPagePoint.y - DEFAULT_ROUTE_RADIUS,
+
+      props: {
+        id,
+      },
     });
 
-    if (existingShape && isRouteShape(existingShape)) {
-      this.editor.setCursor({ type: "default" });
-    } else {
-      this.editor.setCursor({ type: "cross" });
-    }
+    this.editor.setSelectedShapes([createShapeId(id)]);
+    this.editor.setHoveredShape(createShapeId(id));
 
-    if (this.editor.inputs.isDragging) {
-      this.parent.transition("dragging");
-    }
+    this.complete();
   }
 
-  override onLongPress() {
-    if (this.editor.getSelectedShapes().length) {
+  override onPointerMove() {
+    const [selectedShape] = this.editor.getSelectedShapes();
+
+    if (isRouteShape(selectedShape) && this.editor.inputs.isDragging) {
       this.editor.setCurrentTool("select.translating");
       return;
-    }
-  }
-
-  override onDoubleClick(): void {
-    const { currentPagePoint } = this.editor.inputs;
-
-    const existingShape = this.editor.getShapeAtPoint(currentPagePoint, {
-      margin: DEFAULT_ROUTE_RADIUS,
-      hitFrameInside: true,
-      hitInside: true,
-    });
-
-    if (existingShape && isRouteShape(existingShape)) {
-      this.editor.deleteShapes([existingShape.id]);
     }
   }
 
   override onCancel() {
-    this.parent.transition("idle");
+    this.complete();
   }
 
   override onComplete() {
-    this.parent.transition("idle");
+    this.complete();
   }
 
   override onInterrupt() {
-    this.parent.transition("idle");
+    this.complete();
   }
-}
 
-export class AdminRouteTool extends StateNode {
-  static override id = "admin-route-tool";
-  static override initial = "idle";
-  static override isLockable = false;
-  static override children(): TLStateNodeConstructor[] {
-    return [Idle, Dragging];
+  private complete() {
+    this.parent.transition("idle");
   }
 }
