@@ -123,6 +123,10 @@ export async function action(args: Route.ActionArgs) {
   return redirect(`/dashboard?routeId=${result.data.routeId}`);
 }
 
+export const handle = {
+  breadcrumb: (loaderData) => loaderData.activeLocation.name,
+};
+
 export default function Route({
   loaderData,
   actionData,

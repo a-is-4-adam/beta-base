@@ -1,6 +1,22 @@
-import { StateNode, type TLStateNodeConstructor, Vec } from "@tldraw/editor";
-import { isRouteShape } from "@/components/tldraw/shape-utils/route-shape-util";
-import { Dragging } from "./state-nodes/dragging";
+import {
+  StateNode,
+  type TLPointerEventInfo,
+  type TLStateNodeConstructor,
+  Vec,
+} from "tldraw";
+import {
+  DEFAULT_ROUTE_RADIUS,
+  isRouteShape,
+} from "../shape-utils/route-shape-util";
+
+export class MemberTool extends StateNode {
+  static override id = "member-tool";
+  static override initial = "idle";
+  static override isLockable = false;
+  static override children(): TLStateNodeConstructor[] {
+    return [Idle, Pointing];
+  }
+}
 
 class Idle extends StateNode {
   static override id = "idle";
@@ -9,10 +25,26 @@ class Idle extends StateNode {
     this.editor.setCursor({ type: "grab", rotation: 0 });
   }
 
-  override onPointerDown(): void {
+  override onPointerDown(info: TLPointerEventInfo) {
+    this.parent.transition("pointing", info);
+  }
+
+  override onCancel() {
+    this.editor.setCurrentTool("select");
+  }
+}
+
+export class Pointing extends StateNode {
+  static override id = "pointing";
+
+  override onEnter() {
+    this.editor.stopCameraAnimation();
+    this.editor.setCursor({ type: "grabbing", rotation: 0 });
+
     const { currentPagePoint } = this.editor.inputs;
 
     const existingShape = this.editor.getShapeAtPoint(currentPagePoint, {
+      margin: DEFAULT_ROUTE_RADIUS,
       hitFrameInside: true,
       hitInside: true,
     });
@@ -21,49 +53,27 @@ class Idle extends StateNode {
       this.editor.setSelectedShapes([existingShape.id]);
     } else {
       this.editor.setSelectedShapes([]);
+      this.editor.setHoveredShape(null);
     }
   }
 
-  override onPointerMove(): void {
-    const { currentPagePoint } = this.editor.inputs;
-
-    const existingShapes = this.editor.getShapesAtPoint(currentPagePoint, {
-      hitInside: true,
-    });
-
-    if (existingShapes.some(isRouteShape)) {
-      this.editor.setCursor({ type: "default" });
-    } else {
-      this.editor.setCursor({ type: "grab" });
-    }
-
-    if (this.editor.inputs.isDragging) {
-      this.parent.transition("dragging");
-    }
-  }
-
-  override onLongPress() {
-    this.parent.transition("dragging");
+  override onPointerUp() {
+    this.complete();
   }
 
   override onCancel() {
-    this.parent.transition("idle");
+    this.complete();
   }
 
   override onComplete() {
-    this.parent.transition("idle");
+    this.complete();
   }
 
   override onInterrupt() {
-    this.parent.transition("idle");
+    this.complete();
   }
-}
 
-export class MemberTool extends StateNode {
-  static override id = "member-tool";
-  static override initial = "idle";
-  static override isLockable = false;
-  static override children(): TLStateNodeConstructor[] {
-    return [Idle, Dragging];
+  private complete() {
+    this.parent.transition("idle");
   }
 }

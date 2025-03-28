@@ -77,7 +77,6 @@ export function Map({
               panSpeed: 1,
               zoomSpeed: 1,
               zoomSteps: [1, 2, 4],
-
               constraints: {
                 initialZoom: "fit-max",
                 baseZoom: "fit-max",

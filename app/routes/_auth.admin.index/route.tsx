@@ -34,7 +34,8 @@ export default function Route({ loaderData }: Route.ComponentProps) {
             <CardFooter className="flex justify-end">
               <Link
                 to={`/admin/locations/${location.slug}/routes/edit`}
-                className={buttonVariants({ size: "sm" })}
+                className={buttonVariants()}
+                variant="default"
               >
                 Edit Routes
               </Link>

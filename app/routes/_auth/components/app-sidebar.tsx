@@ -6,11 +6,18 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
+  SidebarGroupLabel,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "./sidebar";
 import { Link } from "@/components/ui/link";
+import {
+  ArrowRightLeftIcon,
+  SquarePlusIcon,
+  LayoutDashboardIcon,
+} from "lucide-react";
 
 export function AppSidebar({
   isAdmin,
@@ -18,19 +25,38 @@ export function AppSidebar({
 }: React.ComponentProps<typeof Sidebar> & { isAdmin: boolean }) {
   return (
     <Sidebar variant="inset" {...props}>
-      <SidebarContent className="bg-background rounded-tl-xl rounded-tr-xl">
+      <SidebarHeader className="bg-background rounded-tl-xl rounded-tr-xl">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              className="data-[slot=sidebar-menu-button]:!p-1.5"
+            >
+              <Link to="/dashboard">
+                <span className="text-2xl font-bold italic tracking-tight text-primary">
+                  Beta Base
+                </span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
+      <SidebarContent className="bg-background">
         <SidebarGroup>
+          {isAdmin ? <SidebarGroupLabel>Personal</SidebarGroupLabel> : null}
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <Link to="/dashboard">
+                <Link to="/dashboard" className="flex gap-2">
+                  <SquarePlusIcon />
                   <span>Log</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <Link to="/switch-location">
+                <Link to="/switch-location" className="flex gap-2">
+                  <ArrowRightLeftIcon />
                   <span>Switch Location</span>
                 </Link>
               </SidebarMenuButton>
@@ -39,17 +65,20 @@ export function AppSidebar({
         </SidebarGroup>
         {isAdmin ? (
           <SidebarGroup>
+            <SidebarGroupLabel>Admin</SidebarGroupLabel>
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link to="/admin">
-                    <span>Admin</span>
+                  <Link to="/admin" className="flex gap-2">
+                    <LayoutDashboardIcon />
+                    <span>Dashboard</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link to="/switch-organisation">
+                  <Link to="/switch-organisation" className="flex gap-2">
+                    <ArrowRightLeftIcon />
                     <span>Switch Organisation</span>
                   </Link>
                 </SidebarMenuButton>

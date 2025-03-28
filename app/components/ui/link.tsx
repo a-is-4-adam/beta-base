@@ -17,16 +17,7 @@ const Link = ({ className, variant, size, to, ...props }: LinkProps) => {
   return (
     <AriaLink
       href={to}
-      className={composeRenderProps(className, (className) =>
-        cn(
-          variant &&
-            buttonVariants({
-              variant,
-              size,
-              className,
-            })
-        )
-      )}
+      className={composeRenderProps(className, (className) => cn(className))}
       {...props}
     />
   );

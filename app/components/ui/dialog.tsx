@@ -57,7 +57,7 @@ const DialogOverlay = ({
     isDismissable={isDismissable}
     className={composeRenderProps(className, (className) =>
       cn(
-        "fixed inset-0 z-50 bg-black/80",
+        "fixed inset-0 z-300 bg-black/80",
         /* Exiting */
         "data-[exiting]:duration-300 data-[exiting]:animate-out data-[exiting]:fade-out-0",
         /* Entering */
