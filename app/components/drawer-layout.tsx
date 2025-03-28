@@ -1,5 +1,4 @@
 import { motion, useMotionValue, animate } from "framer-motion";
-import { useState } from "react";
 
 import { ClientOnly } from "./client-only";
 import React from "react";
@@ -13,8 +12,8 @@ const staticTransition = {
 const DRAG_HANDLE_HEIGHT = 36;
 
 type DrawerLayoutProps = {
-  children: React.ReactNode;
-  preview: React.ReactNode;
+  children?: React.ReactNode;
+  preview?: React.ReactNode;
   // isOpen?: boolean;
   // setIsOpen?: (isOpen: boolean) => void;
 };
@@ -29,7 +28,7 @@ export function DrawerLayout(props: DrawerLayoutProps) {
   );
 }
 
-function DrawerLayoutInner() {
+function DrawerLayoutInner({ children, preview }: DrawerLayoutProps) {
   const [isRefSet, setIsRefSet] = React.useState(false);
 
   const previewRef = React.useRef<HTMLDivElement | null>(null);
@@ -72,7 +71,7 @@ function DrawerLayoutInner() {
         <div className="flex-shrink-0">
           <DragHandle />
         </div>
-        <div className="flex-1 bg-green-100">
+        <div className="flex-1">
           <div
             ref={(ref) => {
               setIsRefSet(true);
@@ -84,11 +83,10 @@ function DrawerLayoutInner() {
               previewRef.current = ref;
             }}
           >
-            <div className="pb-10 bg-red-200" />
+            {preview}
           </div>
-          <div>
-            <div className="pb-[500px] bg-blue-200" />
-          </div>
+
+          <div>{children}</div>
         </div>
       </motion.div>
     </>

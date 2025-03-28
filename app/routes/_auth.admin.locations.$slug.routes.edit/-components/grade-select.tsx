@@ -22,8 +22,6 @@ const GRADES = [
 export function GradeSelect(
   props: Omit<React.ComponentPropsWithoutRef<typeof JollySelect>, "children">
 ) {
-  console.log("🚀 ~ props:", props);
-
   return (
     <JollySelect {...props} items={GRADES} placeholder="Choose a grade">
       {(item) => <SelectItem key={item.key}>{item.key}</SelectItem>}

@@ -38,6 +38,7 @@ import {
 } from "@/components/tldraw/shape-utils/route-shape-util";
 import { PolygonShapeUtil } from "@/components/tldraw/shape-utils/polygon-shape-util";
 import { MemberTool } from "@/components/tldraw/tools/member-tool";
+import { cn } from "@/lib/utils";
 
 const customShapesUtils = [PolygonShapeUtil, RouteShapeUtil];
 const customTools = [MemberTool];
@@ -136,7 +137,7 @@ export default function Route({
 
   return (
     <>
-      <div className="relative h-full -mx-4 w-[calc(100%+var(--spacing)*8)]">
+      <div className="relative h-full">
         <Map
           initialState="member-tool"
           shapeUtils={customShapesUtils}
@@ -154,9 +155,7 @@ export default function Route({
       </div>
       {editor ? (
         <ExternalTldrawEditorProvider value={{ editor }}>
-          <DrawerLayout preview={<DrawerPreview actionData={actionData} />}>
-            <DrawerPreview actionData={actionData} />
-          </DrawerLayout>
+          <DrawerLayout preview={<DrawerPreview actionData={actionData} />} />
         </ExternalTldrawEditorProvider>
       ) : null}
     </>
@@ -169,11 +168,6 @@ function EditLogEmptyState() {
       <p className="text-muted-foreground col-span-full row-span-full place-content-center text-center">
         Select a route to log
       </p>
-      <Button
-        aria-hidden
-        size="lg"
-        className="invisible col-span-full row-span-full"
-      />
     </div>
   );
 }
@@ -190,34 +184,56 @@ function DrawerPreview({
     [editor]
   );
 
-  if (selectedShapes.length !== 1) {
-    return <EditLogEmptyState />;
-  }
-
   const [routeShape] = selectedShapes;
 
-  if (routeShape && !isRouteShape(routeShape)) {
-    return <EditLogEmptyState />;
-  }
-
   return (
-    <div className="flex gap-2">
-      <UpsertLogForm
-        actionData={actionData}
-        routeId={routeShape.props.id}
-        status="SEND"
-        routeStatus={routeShape.props.status}
+    <div className="grid grid-cols-1 grid-rows-1 p-2">
+      <div
+        className={cn(
+          "col-span-full row-span-full flex items-center justify-center visible",
+          {
+            invisible: routeShape && isRouteShape(routeShape),
+          }
+        )}
       >
-        <CheckIcon /> Send
-      </UpsertLogForm>
-      <UpsertLogForm
-        actionData={actionData}
-        routeId={routeShape.props.id}
-        status="FLASH"
-        routeStatus={routeShape.props.status}
+        <EditLogEmptyState />
+      </div>
+      <div
+        className={cn("col-span-full row-span-full invisible", {
+          visible: routeShape && isRouteShape(routeShape),
+        })}
       >
-        <ZapIcon /> Flash
-      </UpsertLogForm>
+        <div className="flex gap-2">
+          <UpsertLogForm
+            actionData={actionData}
+            routeId={
+              routeShape && isRouteShape(routeShape) ? routeShape.props.id : ""
+            }
+            status="SEND"
+            routeStatus={
+              routeShape && isRouteShape(routeShape)
+                ? routeShape.props.status
+                : undefined
+            }
+          >
+            <CheckIcon /> Send
+          </UpsertLogForm>
+          <UpsertLogForm
+            actionData={actionData}
+            routeId={
+              routeShape && isRouteShape(routeShape) ? routeShape.props.id : ""
+            }
+            status="FLASH"
+            routeStatus={
+              routeShape && isRouteShape(routeShape)
+                ? routeShape.props.status
+                : undefined
+            }
+          >
+            <ZapIcon /> Flash
+          </UpsertLogForm>
+        </div>
+      </div>
     </div>
   );
 }
@@ -245,7 +261,7 @@ function UpsertLogForm({
       routeId,
       status,
     },
-    validators,
+    validators: routeId ? validators : {},
     // @ts-expect-error TODO fix this
     transform: useTransform(
       (baseForm) => mergeForm(baseForm, actionData ?? {}),

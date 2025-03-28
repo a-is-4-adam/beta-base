@@ -11,18 +11,18 @@ export const routeVariants = cva(
       color: {
         yellow:
           "[--route-bg:#FFE629] [--route-border:#ccb400] [--route-ring:#ccb400]",
-        teal: "[--route-bg:#5aadbb] [--route-border:#167687] [--route-ring:#167687] [&+*]:text-white",
-        blue: "[--route-bg:#0090FF] [--route-border:#005799] [--route-ring:#005799] [&+*]:text-white",
+        teal: "[--route-bg:#5aadbb] [--route-border:#167687] [--route-ring:#167687] text-white [&+*]:text-white",
+        blue: "[--route-bg:#0090FF] [--route-border:#005799] [--route-ring:#005799]  text-white [&+*]:text-white",
         purple:
-          "[--route-bg:#9049FF] [--route-border:#5600e0] [--route-ring:#5600e0] [&+*]:text-white",
-        pink: "[--route-bg:#f22c97] [--route-border:#9a0052] [--route-ring:#9a0052] [&+*]:text-white",
+          "[--route-bg:#9049FF] [--route-border:#5600e0] [--route-ring:#5600e0]  text-white [&+*]:text-white",
+        pink: "[--route-bg:#f22c97] [--route-border:#9a0052] [--route-ring:#9a0052]  text-white [&+*]:text-white",
         green:
-          "[--route-bg:#5BB98B] [--route-border:#347958] [--route-ring:#347958] [&+*]:text-white",
-        red: "[--route-bg:#fb2c36] [--route-border:#be040d] [--route-ring:#be040d] [&+*]:text-white",
+          "[--route-bg:#5BB98B] [--route-border:#347958] [--route-ring:#347958] text-white [&+*]:text-white",
+        red: "[--route-bg:#fb2c36] [--route-border:#be040d] [--route-ring:#be040d]  text-white [&+*]:text-white",
         black:
-          "[--route-bg:#333] [--route-border:black] [--route-ring:black] [&+*]:text-white",
+          "[--route-bg:#333] [--route-border:black] [--route-ring:black]  text-white [&+*]:text-white",
         white:
-          "[--route-bg:white] [--route-border:#ccc] [--route-ring:#ccc] [&+*]:text-black data-[selected]:border-[#e6e6e6] data-[selected]:border-2",
+          "[--route-bg:white] [--route-border:#ccc] [--route-ring:#ccc]  text-white [&+*]:text-black data-[selected]:border-[#e6e6e6] data-[selected]:border-2",
       },
       stroke: {
         yellow: " [--route-stroke:#ccb400]",

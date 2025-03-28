@@ -1,7 +1,13 @@
 import { prismaClientHttp } from "@/db/db.server";
 import type { Route } from "./+types/route";
 import { getUserPublicMetadata } from "@/server/clerk";
-import { redirect, useFetcher, useSearchParams, useSubmit } from "react-router";
+import {
+  redirect,
+  useActionData,
+  useFetcher,
+  useSearchParams,
+  useSubmit,
+} from "react-router";
 import { Map } from "@/components/tldraw-editor";
 import "tldraw/tldraw.css";
 import { type Prisma } from "@prisma/client";
@@ -25,7 +31,7 @@ import {
   ExternalTldrawEditorProvider,
   useExternalTldrawEditor,
 } from "@/components/external-tldraw-editor-context";
-import React from "react";
+import React, { memo } from "react";
 import {
   createShapeId,
   DefaultKeyboardShortcutsDialog,
@@ -53,6 +59,8 @@ import { AdminHandTool } from "@/components/tldraw/tools/admin-hand-tool";
 import { ColorRadioGroup } from "./-components/color-radio-group";
 import { GradeSelect } from "./-components/grade-select";
 import { SectorSelect } from "./-components/sector-select";
+import { cn } from "@/lib/utils";
+import { RouteBadge } from "@/components/route-badge";
 
 const customShapesUtils = [PolygonShapeUtil, RouteShapeUtil];
 const customTools = [AdminRouteTool, AdminHandTool];
@@ -85,18 +93,38 @@ const uiOverrides: TLUiOverrides = {
 
 const tldrawComponents: TLComponents = {
   Toolbar: (props) => {
+    const prevTool = React.useRef("");
     const tools = useTools();
+
     const isHandToolSelected = useIsToolSelected(tools["admin-hand-tool"]);
     const isRouteToolSelected = useIsToolSelected(tools["admin-route-tool"]);
+    const isSelectToolSelected = useIsToolSelected(tools["select"]);
+
+    if (isHandToolSelected) {
+      prevTool.current = "admin-hand-tool";
+    }
+
+    if (isRouteToolSelected) {
+      prevTool.current = "admin-route-tool";
+    }
+
     return (
       <DefaultToolbar {...props}>
         <TldrawUiMenuItem
           {...tools["admin-hand-tool"]}
-          isSelected={isHandToolSelected}
+          isSelected={
+            isSelectToolSelected
+              ? prevTool.current === "admin-hand-tool"
+              : isHandToolSelected
+          }
         />
         <TldrawUiMenuItem
           {...tools["admin-route-tool"]}
-          isSelected={isRouteToolSelected}
+          isSelected={
+            isSelectToolSelected
+              ? prevTool.current === "admin-route-tool"
+              : isRouteToolSelected
+          }
         />
       </DefaultToolbar>
     );
@@ -211,7 +239,7 @@ export async function action(args: Route.ActionArgs) {
 
     await deleteRoute(result.data.id);
 
-    return null;
+    return redirect(args.request.url.split("?")[0]);
   }
 
   if (intent === "create") {
@@ -263,8 +291,6 @@ export default function Route({
   loaderData,
   actionData,
 }: Route.ComponentProps) {
-  const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
-
   const submit = useSubmit();
   const [searchParams] = useSearchParams();
   const routeId = searchParams.get("routeId");
@@ -274,7 +300,8 @@ export default function Route({
     ? loaderData.activeLocation.map
     : undefined;
 
-  const prevTool = React.useRef<string | undefined>(undefined);
+  const prevAdminTool = React.useRef<string | undefined>(undefined);
+  const prevSelectTool = React.useRef<string | undefined>(undefined);
   const selectedRoute = React.useRef<TLShapeId | undefined>(undefined);
 
   return (
@@ -303,84 +330,75 @@ export default function Route({
                 return;
               }
 
-              const formData = new FormData();
-              formData.append("intent", "create");
-              formData.append("id", shape.props.id);
-              formData.append("x", shape.x.toString());
-              formData.append("y", shape.y.toString());
-              formData.append("grade", shape.props.grade);
-              formData.append("color", shape.props.color);
-              formData.append("locationId", loaderData.activeLocation.id);
+              const payload = {
+                intent: "create",
+                id: shape.props.id,
+                x: shape.x.toString(),
+                y: shape.y.toString(),
+                grade: shape.props.grade,
+                color: shape.props.color,
+                locationId: loaderData.activeLocation.id,
+              };
+
               if (shape.props.sector) {
-                formData.append("sector", shape.props.sector);
+                payload.sector = shape.props.sector;
               }
 
-              submit(formData, {
+              submit(payload, {
                 method: "POST",
               });
 
               editor.setSelectedShapes([shape.id]);
-              setIsDrawerOpen(true);
             });
 
             editor.sideEffects.registerAfterDeleteHandler("shape", (shape) => {
               if (isRouteShape(shape)) {
-                const formData = new FormData();
-                formData.append("intent", "delete");
-                formData.append("id", shape.props.id);
-
-                submit(formData, {
-                  method: "DELETE",
-                });
+                submit(
+                  {
+                    intent: "delete",
+                    id: shape.props.id,
+                  },
+                  {
+                    method: "DELETE",
+                  }
+                );
               }
             });
 
             editor.sideEffects.registerAfterChangeHandler(
               "instance_page_state",
               () => {
+                const currentTool = editor.getCurrentTool()?.getPath();
+
                 if (
-                  editor.isIn("select.translating") &&
-                  !selectedRoute.current
+                  currentTool === "select.idle" &&
+                  prevSelectTool.current === "select.translating"
                 ) {
-                  const selectedShape = editor.getSelectedShapes()[0];
+                  editor.setCurrentTool(
+                    prevAdminTool.current ?? "admin-hand-tool"
+                  );
+                  const [selectedShape] = editor.getSelectedShapes();
+
                   if (isRouteShape(selectedShape)) {
-                    selectedRoute.current = selectedShape.id;
-                  }
-                }
-
-                const isPrevTranslating =
-                  prevTool.current === "select.translating";
-
-                if (isPrevTranslating && editor.isIn("select.idle")) {
-                  editor.setSelectedShapes([]);
-                  editor.setCurrentTool("admin-route-tool");
-
-                  if (selectedRoute.current) {
-                    const shape = editor.getShape(selectedRoute.current);
-                    if (isRouteShape(shape)) {
-                      const formData = new FormData();
-                      formData.append("intent", "update");
-                      formData.append("id", shape.props.id);
-                      formData.append("x", shape.x.toString());
-                      formData.append("y", shape.y.toString());
-
-                      submit(formData, {
+                    submit(
+                      {
+                        intent: "update",
+                        id: selectedShape.props.id,
+                        x: selectedShape.x.toString(),
+                        y: selectedShape.y.toString(),
+                      },
+                      {
                         method: "POST",
-                      });
-                    }
+                      }
+                    );
                   }
-
-                  selectedRoute.current = undefined;
                 }
 
-                if (
-                  prevTool.current === "admin-route-tool.idle" &&
-                  editor.isIn("select.idle")
-                ) {
-                  editor.setCurrentTool("admin-route-tool");
+                if (!currentTool.includes("select")) {
+                  prevAdminTool.current = currentTool;
+                } else {
+                  prevSelectTool.current = currentTool;
                 }
-
-                prevTool.current = editor.getCurrentTool()?.getPath();
               }
             );
 
@@ -390,24 +408,20 @@ export default function Route({
       </div>
       {editor ? (
         <ExternalTldrawEditorProvider value={{ editor }}>
-          <DrawerLayout
-            preview={<DrawerPreview />}
-            isOpen={isDrawerOpen}
-            setIsOpen={setIsDrawerOpen}
-          >
-            {
-              <DrawerContent
-                actionData={actionData}
-                loaderData={loaderData}
-                setIsDrawerOpen={setIsDrawerOpen}
-              />
-            }
-          </DrawerLayout>
+          <EditRouteDrawer actionData={actionData} />
         </ExternalTldrawEditorProvider>
       ) : null}
     </>
   );
 }
+
+const EditRouteDrawer = memo(({ actionData }: DrawerContentProps) => {
+  return (
+    <DrawerLayout preview={<DrawerPreview />}>
+      <DrawerContent actionData={actionData} />
+    </DrawerLayout>
+  );
+});
 
 function EditRouteEmptyState() {
   return (
@@ -429,28 +443,41 @@ function DrawerPreview() {
 
   const [routeShape] = selectedShapes;
 
-  if (selectedShapes.length !== 1 || !isRouteShape(routeShape)) {
-    return <EditRouteEmptyState />;
-  }
-
   return (
-    <div className="grid">
-      <p className="text-muted-foreground col-span-full row-span-full place-content-center text-center">
-        Swipe up to edit
-      </p>
+    <div className="grid grid-cols-1 grid-rows-1 p-2">
+      <div
+        className={cn(
+          "col-span-full row-span-full flex items-center justify-center visible",
+          {
+            invisible: routeShape && isRouteShape(routeShape),
+          }
+        )}
+      >
+        <EditRouteEmptyState />
+      </div>
+      <div
+        className={cn("col-span-full row-span-full invisible", {
+          visible: routeShape && isRouteShape(routeShape),
+        })}
+      >
+        <div className="flex gap-2 justify-center">
+          <RouteBadge
+            color={isRouteShape(routeShape) ? routeShape.props.color : ""}
+            className="size-8 text-xs"
+          >
+            {isRouteShape(routeShape) ? routeShape.props.grade : ""}
+          </RouteBadge>
+        </div>
+      </div>
     </div>
   );
 }
 
-function DrawerContent({
-  loaderData,
-  actionData,
-  setIsDrawerOpen,
-}: {
-  loaderData: Route.ComponentProps["loaderData"];
+type DrawerContentProps = {
   actionData: Route.ComponentProps["actionData"];
-  setIsDrawerOpen: (isOpen: boolean) => void;
-}) {
+};
+
+function DrawerContent({ actionData }: DrawerContentProps) {
   const { editor } = useExternalTldrawEditor();
   const selectedShapes = useValue(
     "selected shapes",
@@ -460,23 +487,20 @@ function DrawerContent({
 
   const [routeShape] = selectedShapes;
 
-  if (
-    selectedShapes.length !== 1 ||
-    !isRouteShape(routeShape)
-    // !loaderData.routes.find((r) => r.id === routeShape.props.id)
-  ) {
-    return <EditRouteEmptyState />;
+  if (selectedShapes.length !== 1 || !isRouteShape(routeShape)) {
+    return null;
   }
 
   return (
-    <EditRouteForm
-      actionData={actionData}
-      id={routeShape.props.id}
-      grade={routeShape.props.grade}
-      color={routeShape.props.color}
-      sector={routeShape.props.sector}
-      setIsDrawerOpen={setIsDrawerOpen}
-    />
+    <div className="px-4">
+      <EditRouteForm
+        actionData={actionData}
+        id={routeShape.props.id}
+        grade={routeShape.props.grade}
+        color={routeShape.props.color}
+        sector={routeShape.props.sector}
+      />
+    </div>
   );
 }
 
@@ -486,16 +510,15 @@ function EditRouteForm({
   grade,
   color,
   sector,
-  setIsDrawerOpen,
 }: {
   actionData: Route.ComponentProps["actionData"];
   id: string;
   grade: string;
   color: string;
   sector: string | undefined;
-  setIsDrawerOpen: (isOpen: boolean) => void;
 }) {
   const fetcher = useFetcher();
+  const submit = useSubmit();
   const { editor } = useExternalTldrawEditor();
 
   const form = useForm({
@@ -522,14 +545,9 @@ function EditRouteForm({
     ),
   });
 
-  const formErrors = useStore(form.store, (formState) => formState.errors);
-
   return (
     <>
       <fetcher.Form method="POST" className="flex flex-col gap-4">
-        {/* {formErrors.length ? JSON.stringify(formErrors) : null}
-        {JSON.stringify(actionData)} */}
-
         <form.Field
           name="intent"
           children={(field) => (
@@ -600,28 +618,25 @@ function EditRouteForm({
         />
         <Button type="submit">Save</Button>
       </fetcher.Form>
-      <fetcher.Form
-        method="DELETE"
-        onSubmit={(event) => {
+      <Button
+        className="w-full mt-4"
+        type="submit"
+        variant="destructive"
+        name="intent"
+        value="delete"
+        onPress={() => {
           editor.deleteShape(createShapeId(id));
-          fetcher.submit(event.currentTarget.form, {
-            method: "DELETE",
-          });
-          setIsDrawerOpen(false);
+
+          submit(
+            { intent: "delete", id },
+            {
+              method: "delete",
+            }
+          );
         }}
       >
-        <input type="hidden" name="id" value={id} />
-        <Button
-          id="foo"
-          className="w-full mt-4"
-          type="submit"
-          variant="destructive"
-          name="intent"
-          value="delete"
-        >
-          Delete
-        </Button>
-      </fetcher.Form>
+        Delete
+      </Button>
     </>
   );
 }

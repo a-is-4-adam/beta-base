@@ -1,7 +1,7 @@
 import {
   createShapeId,
   StateNode,
-  type TLClickEventInfo,
+  type TLPointerEventInfo,
   type TLStateNodeConstructor,
 } from "tldraw";
 import {
@@ -19,7 +19,21 @@ class Idle extends StateNode {
     this.editor.setCursor({ type: "cross", rotation: 0 });
   }
 
-  override onPointerDown(): void {
+  override onPointerDown(info: TLPointerEventInfo): void {
+    const { currentPagePoint } = this.editor.inputs;
+
+    const existingShape = this.editor.getShapeAtPoint(currentPagePoint, {
+      margin: DEFAULT_ROUTE_RADIUS,
+      hitFrameInside: true,
+      hitInside: true,
+    });
+
+    if (existingShape && isRouteShape(existingShape)) {
+      this.editor.setSelectedShapes([existingShape.id]);
+    }
+  }
+
+  override onPointerUp(): void {
     const { currentPagePoint } = this.editor.inputs;
 
     const existingShape = this.editor.getShapeAtPoint(currentPagePoint, {
