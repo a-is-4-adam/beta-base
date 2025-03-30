@@ -15,6 +15,7 @@ const routes = [
         "switch-organisation",
         "routes/_auth.switch-organisation/route.tsx"
       ),
+      route("statistics", "routes/_auth.statistics/route.tsx"),
 
       route("admin", "routes/_auth.admin/route.tsx", [
         index("routes/_auth.admin.index/route.tsx"),

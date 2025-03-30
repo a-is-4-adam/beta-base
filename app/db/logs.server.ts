@@ -6,16 +6,19 @@ type LogKey = {
   routeId: string;
 };
 
-export function upsertLog(log: {
+export async function upsertLog(log: {
   status: Log["status"];
   userId: string;
   routeId: string;
 }) {
-  return prismaClientWs.log.upsert({
+  const foo = await prismaClientWs.log.upsert({
     where: { userId_routeId: { userId: log.userId, routeId: log.routeId } },
     update: log,
     create: log,
   });
+  console.log("🚀 ~ foo:", foo);
+
+  return foo;
 }
 
 export async function getLogById(logKey: LogKey) {
@@ -27,5 +30,18 @@ export async function getLogById(logKey: LogKey) {
 export async function deleteLogById(logKey: LogKey) {
   return prismaClientWs.log.delete({
     where: { userId_routeId: logKey },
+  });
+}
+
+export function getAllLogsByUserId(userId: string) {
+  return prismaClientWs.log.findMany({
+    where: {
+      userId,
+    },
+    select: {
+      createdAt: true,
+      route: true,
+      status: true,
+    },
   });
 }

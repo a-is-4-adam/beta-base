@@ -17,6 +17,7 @@ import {
   ArrowRightLeftIcon,
   SquarePlusIcon,
   LayoutDashboardIcon,
+  ChartSplineIcon,
 } from "lucide-react";
 
 export function AppSidebar({
@@ -50,6 +51,14 @@ export function AppSidebar({
                 <Link to="/dashboard" className="flex gap-2">
                   <SquarePlusIcon />
                   <span>Log</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link to="/statistics" className="flex gap-2">
+                  <ChartSplineIcon />
+                  <span>Statistics</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

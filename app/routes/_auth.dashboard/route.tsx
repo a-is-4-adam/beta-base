@@ -255,6 +255,7 @@ function UpsertLogForm({
   routeStatus: "SEND" | "FLASH" | undefined;
   children: React.ReactNode;
 }) {
+  console.log("🚀 ~ routeId:", routeId);
   const { editor } = useExternalTldrawEditor();
   const fetcher = useFetcher();
 
@@ -272,9 +273,15 @@ function UpsertLogForm({
       [actionData]
     ),
     onSubmit: ({ value }) => {
-      fetcher.submit(value, {
-        method: isActiveStatus ? "DELETE" : "POST",
-      });
+      fetcher.submit(
+        {
+          routeId,
+          status,
+        },
+        {
+          method: isActiveStatus ? "DELETE" : "POST",
+        }
+      );
 
       if (isActiveStatus) {
         editor.updateShape({
