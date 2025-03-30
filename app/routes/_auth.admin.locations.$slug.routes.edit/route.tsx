@@ -367,7 +367,12 @@ export default function Route({
             editor.sideEffects.registerAfterChangeHandler(
               "instance_page_state",
               () => {
-                const currentTool = editor.getCurrentTool()?.id;
+                const currentTool = editor.getCurrentTool()?.getPath();
+                console.log("🚀 ~ currentTool:", {
+                  currentTool,
+                  prevSelectTool,
+                  prevAdminTool,
+                });
 
                 if (
                   currentTool === "select.idle" &&

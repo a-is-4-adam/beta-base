@@ -11,14 +11,11 @@ export async function upsertLog(log: {
   userId: string;
   routeId: string;
 }) {
-  const foo = await prismaClientWs.log.upsert({
+  return prismaClientWs.log.upsert({
     where: { userId_routeId: { userId: log.userId, routeId: log.routeId } },
     update: log,
     create: log,
   });
-  console.log("🚀 ~ foo:", foo);
-
-  return foo;
 }
 
 export async function getLogById(logKey: LogKey) {

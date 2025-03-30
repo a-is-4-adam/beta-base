@@ -255,7 +255,6 @@ function UpsertLogForm({
   routeStatus: "SEND" | "FLASH" | undefined;
   children: React.ReactNode;
 }) {
-  console.log("🚀 ~ routeId:", routeId);
   const { editor } = useExternalTldrawEditor();
   const fetcher = useFetcher();
 

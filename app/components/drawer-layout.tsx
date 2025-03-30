@@ -125,17 +125,10 @@ function DrawerLayoutInner({ children, preview }: DrawerLayoutProps) {
         <div className="flex-1">
           <div
             ref={(ref) => {
-              console.log("🚀 ~ DrawerLayoutInner ~ ref:", ref);
               if (!ref) {
                 return;
               }
               setPreviewRef(ref);
-
-              console.log("ref callback", {
-                h: window.innerHeight,
-                rH: ref.getBoundingClientRect().height,
-                t: window.innerHeight - ref.getBoundingClientRect().height,
-              });
             }}
           >
             {preview}
