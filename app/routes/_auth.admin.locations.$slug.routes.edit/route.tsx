@@ -1,8 +1,14 @@
 import { prismaClientHttp } from "@/db/db.server";
 import type { Route } from "./+types/route";
 import { getUserPublicMetadata } from "@/server/clerk";
-import { redirect, useFetcher, useSearchParams, useSubmit } from "react-router";
-import { Map } from "@/components/tldraw-editor";
+import {
+  redirect,
+  useFetcher,
+  useLoaderData,
+  useSearchParams,
+  useSubmit,
+} from "react-router";
+import { Map as TldrawMap } from "@/components/tldraw-editor";
 import "tldraw/tldraw.css";
 import { type Prisma } from "@prisma/client";
 import {
@@ -148,7 +154,7 @@ const customAssetUrls: TLUiAssetUrlOverrides = {
 };
 
 export const handle = {
-  breadcrumb: "Edit routes",
+  breadcrumb: (loaderData) => `Edit ${loaderData.activeLocation.name} routes`,
 };
 
 export async function loader(args: Route.LoaderArgs) {
@@ -238,6 +244,7 @@ export async function action(args: Route.ActionArgs) {
 
     await deleteRoute(result.data.id);
 
+    return null;
     return redirect(args.request.url.split("?")[0]);
   }
 
@@ -263,7 +270,7 @@ export async function action(args: Route.ActionArgs) {
     });
 
     requestUrl.searchParams.set("routeId", resultData.id);
-
+    return null;
     return redirect(requestUrl.toString());
   }
 
@@ -282,7 +289,7 @@ export async function action(args: Route.ActionArgs) {
   const { intent: _, ...resultData } = result.data;
 
   const route = await updateRoute(resultData);
-
+  return null;
   return redirect(`${args.request.url.split("?")[0]}?routeId=${route.id}`);
 }
 
@@ -290,10 +297,27 @@ export default function Route({
   loaderData,
   actionData,
 }: Route.ComponentProps) {
+  const [editor, setEditor] = React.useState<Editor | undefined>(undefined);
+
+  return (
+    <DrawerProvider>
+      <div className="relative h-full">
+        <Map setEditor={setEditor} />
+      </div>
+      {editor ? (
+        <ExternalTldrawEditorProvider value={{ editor }}>
+          <EditRouteDrawer actionData={actionData} />
+        </ExternalTldrawEditorProvider>
+      ) : null}
+    </DrawerProvider>
+  );
+}
+
+function Map({ setEditor }: { setEditor: (editor: Editor) => void }) {
   const submit = useSubmit();
   const [searchParams] = useSearchParams();
   const routeId = searchParams.get("routeId");
-  const [editor, setEditor] = React.useState<Editor | undefined>(undefined);
+  const loaderData = useLoaderData<typeof loader>();
 
   const map = isJsonObject(loaderData.activeLocation.map)
     ? loaderData.activeLocation.map
@@ -303,119 +327,110 @@ export default function Route({
   const prevSelectTool = React.useRef<string | undefined>(undefined);
   const selectedRoute = React.useRef<TLShapeId | undefined>(undefined);
 
+  const { open } = useDrawerContext();
+
   return (
-    <DrawerProvider>
-      <div className="relative h-full">
-        <Map
-          initialState="admin-hand-tool"
-          shapeUtils={customShapesUtils}
-          tools={customTools}
-          map={map}
-          routes={loaderData.routes.map((r) => ({
-            ...r,
-            Log: [],
-          }))}
-          overrides={uiOverrides}
-          components={tldrawComponents}
-          assetUrls={customAssetUrls}
-          onMount={(editor) => {
-            if (routeId) {
-              const shapeId = createShapeId(routeId);
-              editor.setSelectedShapes([shapeId]);
-            }
+    <TldrawMap
+      initialState="admin-hand-tool"
+      shapeUtils={customShapesUtils}
+      tools={customTools}
+      map={map}
+      routes={loaderData.routes.map((r) => ({
+        ...r,
+        Log: [],
+      }))}
+      overrides={uiOverrides}
+      components={tldrawComponents}
+      assetUrls={customAssetUrls}
+      onMount={(editor) => {
+        if (routeId) {
+          const shapeId = createShapeId(routeId);
+          editor.setSelectedShapes([shapeId]);
+        }
 
-            editor.sideEffects.registerAfterCreateHandler("shape", (shape) => {
-              if (!isRouteShape(shape)) {
-                return;
-              }
+        editor.sideEffects.registerAfterCreateHandler("shape", (shape) => {
+          if (!isRouteShape(shape)) {
+            return;
+          }
 
-              const payload = {
-                intent: "create",
+          const payload = {
+            intent: "create",
+            id: shape.props.id,
+            x: shape.x.toString(),
+            y: shape.y.toString(),
+            grade: shape.props.grade,
+            color: shape.props.color,
+            locationId: loaderData.activeLocation.id,
+          };
+
+          if (shape.props.sector) {
+            payload.sector = shape.props.sector;
+          }
+
+          submit(payload, {
+            method: "POST",
+            navigate: false,
+          });
+
+          editor.setSelectedShapes([shape.id]);
+
+          open();
+        });
+
+        editor.sideEffects.registerAfterDeleteHandler("shape", (shape) => {
+          if (isRouteShape(shape)) {
+            submit(
+              {
+                intent: "delete",
                 id: shape.props.id,
-                x: shape.x.toString(),
-                y: shape.y.toString(),
-                grade: shape.props.grade,
-                color: shape.props.color,
-                locationId: loaderData.activeLocation.id,
-              };
-
-              if (shape.props.sector) {
-                payload.sector = shape.props.sector;
+              },
+              {
+                method: "DELETE",
+                navigate: false,
               }
+            );
+          }
+        });
 
-              submit(payload, {
-                method: "POST",
-              });
+        editor.sideEffects.registerAfterChangeHandler(
+          "instance_page_state",
+          () => {
+            const currentTool = editor.getCurrentTool()?.getPath();
 
-              editor.setSelectedShapes([shape.id]);
-            });
+            if (
+              currentTool === "select.idle" &&
+              prevSelectTool.current === "select.translating"
+            ) {
+              editor.setCurrentTool(prevAdminTool.current ?? "admin-hand-tool");
+              const [selectedShape] = editor.getSelectedShapes();
 
-            editor.sideEffects.registerAfterDeleteHandler("shape", (shape) => {
-              if (isRouteShape(shape)) {
+              if (isRouteShape(selectedShape)) {
                 submit(
                   {
-                    intent: "delete",
-                    id: shape.props.id,
+                    intent: "update",
+                    id: selectedShape.props.id,
+                    x: selectedShape.x.toString(),
+                    y: selectedShape.y.toString(),
                   },
                   {
-                    method: "DELETE",
+                    method: "POST",
+                    navigate: false,
                   }
                 );
               }
-            });
+            }
 
-            editor.sideEffects.registerAfterChangeHandler(
-              "instance_page_state",
-              () => {
-                const currentTool = editor.getCurrentTool()?.getPath();
-                console.log("🚀 ~ currentTool:", {
-                  currentTool,
-                  prevSelectTool,
-                  prevAdminTool,
-                });
+            if (!currentTool.includes("select")) {
+              prevAdminTool.current = currentTool;
+            } else {
+              prevSelectTool.current = currentTool;
+            }
+          }
+        );
 
-                if (
-                  currentTool === "select.idle" &&
-                  prevSelectTool.current === "select.translating"
-                ) {
-                  editor.setCurrentTool(
-                    prevAdminTool.current ?? "admin-hand-tool"
-                  );
-                  const [selectedShape] = editor.getSelectedShapes();
-
-                  if (isRouteShape(selectedShape)) {
-                    submit(
-                      {
-                        intent: "update",
-                        id: selectedShape.props.id,
-                        x: selectedShape.x.toString(),
-                        y: selectedShape.y.toString(),
-                      },
-                      {
-                        method: "POST",
-                      }
-                    );
-                  }
-                }
-
-                if (!currentTool.includes("select")) {
-                  prevAdminTool.current = currentTool;
-                } else {
-                  prevSelectTool.current = currentTool;
-                }
-              }
-            );
-
-            setEditor(editor);
-          }}
-        />
-      </div>
-      {editor ? (
-        <ExternalTldrawEditorProvider value={{ editor }}>
-          <EditRouteDrawer actionData={actionData} />
-        </ExternalTldrawEditorProvider>
-      ) : null}
-    </DrawerProvider>
+        setEditor(editor);
+      }}
+    />
   );
 }
 
@@ -642,6 +657,7 @@ function EditRouteForm({
             { intent: "delete", id },
             {
               method: "delete",
+              navigate: false,
             }
           );
 

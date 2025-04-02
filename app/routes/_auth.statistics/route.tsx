@@ -1,8 +1,17 @@
 import type { Route } from "./+types/route";
-import { typographyVariants } from "@/components/ui/typography";
 import { getUserId } from "@/server/clerk";
 import { getAllLogsByUserId } from "@/db/logs.server";
 import { RouteBadge } from "@/components/route-badge";
+import { Progress } from "@/components/ui/progress";
+import { Label, labelVariants } from "@/components/ui/field";
+import {
+  Cell,
+  Column,
+  Row,
+  Table,
+  TableBody,
+  TableHeader,
+} from "@/components/ui/table";
 
 const POINTS = {
   VB: 200,
@@ -78,7 +87,7 @@ function percentageToNextGrade(averagePoints: number): {
       ((averagePoints - closestPoints) / (nextPoints - closestPoints)) * 100;
     return {
       grade: nextGrade,
-      percentage: Math.max(0, Math.min(percentage, 100)),
+      percentage: Math.floor(Math.max(0, Math.min(percentage, 100))),
     }; // Clamp between 0 and 100
   }
 
@@ -105,42 +114,85 @@ export default function Route({ loaderData }: Route.ComponentProps) {
   const averagePoints = averageTopClimbs(loaderData.logs, 10);
 
   const currentGrade = getClosestGrade(averagePoints);
-  const { percentage } = percentageToNextGrade(averagePoints);
+  const { grade: nextGrade, percentage } = percentageToNextGrade(averagePoints);
 
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h1 className={typographyVariants({ variant: "h3" })}>
-          Current Grade: {currentGrade}{" "}
-          <span className="text-lg">{percentage}%</span>
-        </h1>
+        <Progress value={percentage}>
+          <div className="flex w-full justify-between pb-2">
+            <Label>
+              <span className="font-semibold">{currentGrade}</span>
+            </Label>
+            <span className={labelVariants({ className: "font-semibold" })}>
+              {nextGrade}
+            </span>
+          </div>
+        </Progress>
+        <span
+          className="relative block translate-y-1"
+          style={{
+            "--tw-translate-x": percentage + "%",
+          }}
+        >
+          <span className="relative inline-block  transform -translate-x-1/2  mb-2 bg-primary text-xs text-primary-foreground text-center rounded-sm px-2 py-1">
+            {percentage}%
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 border-5 border-transparent border-b-primary w-0 h-0"></div>
+          </span>
+        </span>
       </div>
       <div className="flex flex-col gap-4 lg:flex-row">
-        <ul className="divide-y divide-border grid grid-cols-[auto_1fr_auto_auto] gap-x-6 ">
-          <li className="grid grid-cols-subgrid col-span-full">
-            <span>Climb</span>
-            <span>Sector</span>
-            <span>Bonus</span>
-            <span>Points</span>
-          </li>
-          {orderLogs(loaderData.logs)
-            .slice(0, 10)
-            .map((log) => (
-              <li className="grid grid-cols-subgrid col-span-full py-1">
-                <span className="">
-                  <RouteBadge color={log.route.color}>
-                    {log.route.grade}
-                  </RouteBadge>
-                </span>
-                <span>{log.route.sector}</span>
-                <span>{log.status === "FLASH" ? "+10" : "0"}</span>
-                <span>
-                  {POINTS[log.route.grade] + (log.status === "FLASH" ? 10 : 0)}
-                </span>
-              </li>
-            ))}
-        </ul>
-        <div className="text-right font-semibold">Average {averagePoints}</div>
+        <div>
+          <Table aria-label="Files" selectionMode="multiple">
+            <TableHeader>
+              <Column isRowHeader>Route</Column>
+              <Column isRowHeader className="w-full">
+                Sector
+              </Column>
+              <Column isRowHeader>Days remaining</Column>
+              <Column isRowHeader>Bonus</Column>
+              <Column isRowHeader>Points</Column>
+            </TableHeader>
+            <TableBody>
+              {orderedLogs.slice(0, 10).map((log) => {
+                console.log("🚀 ~ {orderedLogs.slice ~ log:", log);
+
+                const givenDate = new Date(log.createdAt);
+                const currentDate = new Date();
+                const timeDifference =
+                  currentDate.getTime() - givenDate.getTime();
+
+                // Convert the time difference from milliseconds to days
+                const daysDifference = Math.floor(
+                  timeDifference / (1000 * 60 * 60 * 24)
+                );
+                return (
+                  <Row key={log.route.id}>
+                    <Cell>
+                      <RouteBadge color={log.route.color} className="size-8">
+                        {log.route.grade}
+                      </RouteBadge>
+                    </Cell>
+                    <Cell className="capitalize">{log.route.sector}</Cell>
+                    <Cell className="text-right">{60 - daysDifference}</Cell>
+                    <Cell className="text-right">
+                      {log.status === "FLASH" ? 10 : 0}
+                    </Cell>
+                    <Cell className="text-right">
+                      {POINTS[log.route.grade]}
+                    </Cell>
+                  </Row>
+                );
+              })}
+            </TableBody>
+          </Table>
+          <div className="text-right pr-2 mt-2 pt-2 border-t border-border text-sm">
+            <span className="font-semibold text-muted-foreground pr-4">
+              Average
+            </span>{" "}
+            {averagePoints}
+          </div>
+        </div>
       </div>
     </div>
   );

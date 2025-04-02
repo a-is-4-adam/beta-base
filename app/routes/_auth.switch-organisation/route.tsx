@@ -1,7 +1,7 @@
 import { typographyVariants } from "@/components/ui/typography";
 import { getUserOrganisationList } from "@/server/clerk";
 import { useAuth, useOrganizationList } from "@clerk/react-router";
-import { redirect } from "react-router";
+import { redirect, useNavigate, useSearchParams } from "react-router";
 import type { Route } from "./+types/route";
 import { Button } from "@/components/ui/button";
 import { CheckIcon } from "lucide-react";
@@ -16,6 +16,10 @@ export async function loader(args: Route.LoaderArgs) {
 }
 
 export default function Route() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const redirectUrl = searchParams.get("redirect_url");
+
   const { isLoaded, setActive, userMemberships } = useOrganizationList({
     userMemberships: {
       infinite: true,
@@ -43,9 +47,16 @@ export default function Route() {
               type="button"
               variant="outline"
               className="w-full max-w-sm h-auto py-4 flex items-center justify-between"
-              onPress={() =>
-                setActive({ organization: org.organization.id }).then(() => {})
-              }
+              onPress={async () => {
+                await setActive({ organization: org.organization.id }).then(
+                  () => {}
+                );
+                if (redirectUrl) {
+                  navigate(redirectUrl);
+                } else {
+                  navigate("/admin");
+                }
+              }}
             >
               {org.organization.imageUrl ? (
                 <img
