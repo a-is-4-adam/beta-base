@@ -13,7 +13,7 @@ primary_region = 'syd'
   force_https = true
   auto_stop_machines = 'stop'
   auto_start_machines = true
-  min_machines_running = 0
+  min_machines_running = 1
   processes = ['app']
 
 [[vm]]
@@ -23,7 +23,7 @@ primary_region = 'syd'
 
 
 [env]
-  CLERK_PUBLISHABLE_KEY = 'pk_test_aW1tb3J0YWwtb2NlbG90LTkzLmNsZXJrLmFjY291bnRzLmRldiQ'
+  CLERK_PUBLISHABLE_KEY = 'pk_live_Y2xlcmsuYmV0YS1iYXNlLmFwcCQ'
   CLERK_SIGN_IN_URL = '/sign-in'
   CLERK_SIGN_UP_URL= '/sign-up'
   CLERK_SIGN_IN_FALLBACK_REDIRECT_URL = '/'

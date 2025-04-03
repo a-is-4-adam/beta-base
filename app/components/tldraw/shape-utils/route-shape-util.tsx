@@ -108,7 +108,7 @@ export class RouteShapeUtil extends ShapeUtil<RouteShape> {
     return (
       <circle
         // @ts-expect-error TODO fix this
-        className={routeVariants({ stroke: shape.props.color })}
+        className={routeVariants({ color: shape.props.color })}
         cx={shape.props.radius}
         cy={shape.props.radius}
         r={shape.props.radius + 2}
