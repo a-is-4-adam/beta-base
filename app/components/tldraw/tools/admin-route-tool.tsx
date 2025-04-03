@@ -30,15 +30,12 @@ class Idle extends StateNode {
   override onPointerDown(info: TLPointerEventInfo) {
     const { currentPagePoint } = this.editor.inputs;
 
-    const existingShape = this.editor.getShapeAtPoint(currentPagePoint, {
-      margin: DEFAULT_ROUTE_RADIUS,
-      hitFrameInside: true,
-      hitInside: true,
-    });
-    console.log(
-      "🚀 ~ Idle ~ overrideonPointerDown ~ existingShape:",
-      existingShape
-    );
+    const existingShape = this.editor
+      .getShapesAtPoint(currentPagePoint, {
+        margin: DEFAULT_ROUTE_RADIUS,
+        hitInside: true,
+      })
+      .find(isRouteShape);
 
     if (existingShape && isRouteShape(existingShape)) {
       this.editor.setSelectedShapes([existingShape.id]);

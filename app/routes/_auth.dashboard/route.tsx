@@ -200,7 +200,7 @@ export default function Route({
               isLocked: true,
             });
 
-            editor.setCamera({ x: 0, y: 0, z: 0.5 });
+            editor.setCamera({ x: 0, y: 0, z: -10 });
 
             isMapCreated.current = true;
           }}
