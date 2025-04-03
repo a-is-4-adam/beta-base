@@ -115,7 +115,7 @@ function DrawerLayoutInner({ children, preview }: DrawerLayoutProps) {
           }
         }}
         className={cn(
-          "absolute bg-background bottom-0 left-0 right-0 min-h-full border border-border rounded-tl-lg rounded-tr-lg flex flex-col z-300",
+          "absolute bg-background bottom-0 left-0 right-0 min-h-full border border-muted-foreground rounded-tl-lg rounded-tr-lg flex flex-col z-300",
           previewRef ? "visible" : "invisible"
         )}
       >

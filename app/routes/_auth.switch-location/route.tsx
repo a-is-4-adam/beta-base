@@ -195,7 +195,7 @@ function EditActiveLocation({
               name={field.name}
               value={field.state.value}
               variant="outline"
-              className="w-full max-w-sm h-auto py-4 flex items-center justify-between"
+              className="bg-card w-full max-w-sm h-auto py-4 flex items-center justify-between"
             >
               {location.organisation ? (
                 <img

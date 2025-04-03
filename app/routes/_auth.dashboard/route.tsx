@@ -29,8 +29,8 @@ import {
   ExternalTldrawEditorProvider,
   useExternalTldrawEditor,
 } from "@/components/external-tldraw-editor-context";
-import React from "react";
-import { createShapeId, useValue, type Editor } from "tldraw";
+import React, { useRef } from "react";
+import { AssetRecordType, createShapeId, useValue, type Editor } from "tldraw";
 import {
   isRouteShape,
   ROUTE_SHAPE,
@@ -135,9 +135,7 @@ export default function Route({
   const routeId = searchParams.get("routeId");
   const [editor, setEditor] = React.useState<Editor | undefined>(undefined);
 
-  const map = isJsonObject(loaderData.activeLocation.map)
-    ? loaderData.activeLocation.map
-    : undefined;
+  const isMapCreated = useRef(false);
 
   return (
     <DrawerProvider>
@@ -146,14 +144,64 @@ export default function Route({
           initialState="member-tool"
           shapeUtils={customShapesUtils}
           tools={customTools}
-          map={map}
           routes={loaderData.routes}
           onMount={(editor) => {
             if (routeId) {
               const shapeId = createShapeId(routeId);
               editor.setSelectedShapes([shapeId]);
             }
+
             setEditor(editor);
+
+            if (isMapCreated.current) {
+              return;
+            }
+            const assetId = AssetRecordType.createId();
+            const imageWidth = 770;
+            const imageHeight = 1000;
+
+            editor.createAssets([
+              {
+                id: assetId,
+                type: "image",
+                typeName: "asset",
+                props: {
+                  name: "tldraw.png",
+                  src: `/assets/${loaderData.activeLocation.name.toLowerCase()}.svg`, // You could also use a base64 encoded string here
+                  w: imageWidth,
+                  h: imageHeight,
+                  mimeType: "image/svg+xml",
+                  isAnimated: false,
+                },
+                meta: {},
+              },
+            ]);
+
+            editor.createShape({
+              type: "image",
+              // Let's center the image in the editor
+              // x: (window.innerWidth - imageWidth) / 2,
+              // y: (window.innerHeight - imageHeight) / 2,
+              x: (1000 - 770) / 2,
+              y: 0,
+              props: {
+                assetId,
+                w: imageWidth,
+                h: imageHeight,
+              },
+            });
+
+            const [mapShape] = editor.getCurrentPageShapes();
+
+            editor.updateShape({
+              id: mapShape.id,
+              type: "image",
+              isLocked: true,
+            });
+
+            editor.setCamera({ x: 0, y: 0, z: -10 });
+
+            isMapCreated.current = true;
           }}
         />
       </div>

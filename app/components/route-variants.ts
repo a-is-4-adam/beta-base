@@ -2,9 +2,9 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 export const routeVariants = cva(
   [
-    "relative size-10 border-2 rounded-full overflow-hidden group bg-[var(--route-bg)] border-[var(--route-border)] ",
+    "relative size-10 border-2 rounded-full overflow-hidden group bg-[var(--route-bg)] border-[var(--route-border)] text-background font-bold",
     "hover:cursor-pointer",
-    "data-[selected]:ring-2 data-[selected]:ring-offset-2 data-[selected]:border-0 data-[selected]:ring-[var(--route-ring)] stroke-[var(--route-stroke)] stroke-2",
+    "data-[selected]:ring-2 data-[selected]:ring-offset-2 data-[selected]:ring-offset-transparent data-[selected]:border-0 data-[selected]:ring-[var(--route-ring)] stroke-[var(--route-stroke)] stroke-2",
   ],
   {
     variants: {
@@ -22,7 +22,7 @@ export const routeVariants = cva(
         black:
           "[--route-bg:#333] [--route-border:black] [--route-ring:black]  text-white [&+*]:text-white",
         white:
-          "[--route-bg:white] [--route-border:#ccc] [--route-ring:#ccc]  text-white [&+*]:text-black data-[selected]:border-[#e6e6e6] data-[selected]:border-2",
+          "[--route-bg:white] [--route-border:#ccc] [--route-ring:#ccc]  data-[selected]:border-[#e6e6e6] data-[selected]:border-2",
       },
       stroke: {
         yellow: " [--route-stroke:#ccb400]",

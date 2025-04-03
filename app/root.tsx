@@ -9,6 +9,8 @@ import {
   useNavigate,
   type NavigateOptions,
 } from "react-router";
+import { dark } from "@clerk/themes";
+
 import { rootAuthLoader } from "@clerk/react-router/ssr.server";
 
 import type { Route } from "./+types/root";
@@ -25,7 +27,7 @@ export const links: Route.LinksFunction = () => [
   },
   {
     rel: "stylesheet",
-    href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
+    href: "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap",
   },
 ];
 
@@ -42,7 +44,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Meta />
         <Links />
       </head>
-      <body className={`bg-background text-foreground antialiased`}>
+      <body
+        className={`bg-background text-foreground antialiased overflow-hidden`}
+      >
         {children}
         <ScrollRestoration />
         <Scripts />
@@ -60,6 +64,9 @@ export default function App({ loaderData }: Route.ComponentProps) {
         loaderData={loaderData}
         signUpFallbackRedirectUrl="/"
         signInFallbackRedirectUrl="/"
+        appearance={{
+          baseTheme: dark,
+        }}
       >
         <Outlet />
       </ClerkProvider>

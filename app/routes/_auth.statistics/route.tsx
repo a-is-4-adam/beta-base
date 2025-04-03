@@ -142,21 +142,23 @@ export default function Route({ loaderData }: Route.ComponentProps) {
         </span>
       </div>
       <div className="flex flex-col gap-4 lg:flex-row">
-        <div>
+        <div className="border border-border rounded-xl overflow-hidden">
           <Table aria-label="Files" selectionMode="multiple">
-            <TableHeader>
-              <Column isRowHeader>Route</Column>
+            <TableHeader className="bg-muted [&_th]:py-3">
+              <Column isRowHeader className="pl-2">
+                Route
+              </Column>
               <Column isRowHeader className="w-full">
                 Sector
               </Column>
               <Column isRowHeader>Days remaining</Column>
               <Column isRowHeader>Bonus</Column>
-              <Column isRowHeader>Points</Column>
+              <Column isRowHeader className="pr-2">
+                Points
+              </Column>
             </TableHeader>
             <TableBody>
               {orderedLogs.slice(0, 10).map((log) => {
-                console.log("🚀 ~ {orderedLogs.slice ~ log:", log);
-
                 const givenDate = new Date(log.createdAt);
                 const currentDate = new Date();
                 const timeDifference =
@@ -168,7 +170,7 @@ export default function Route({ loaderData }: Route.ComponentProps) {
                 );
                 return (
                   <Row key={log.route.id}>
-                    <Cell>
+                    <Cell className="pl-4">
                       <RouteBadge color={log.route.color} className="size-8">
                         {log.route.grade}
                       </RouteBadge>
@@ -178,7 +180,7 @@ export default function Route({ loaderData }: Route.ComponentProps) {
                     <Cell className="text-right">
                       {log.status === "FLASH" ? 10 : 0}
                     </Cell>
-                    <Cell className="text-right">
+                    <Cell className="text-right pr-4">
                       {POINTS[log.route.grade]}
                     </Cell>
                   </Row>
@@ -186,11 +188,13 @@ export default function Route({ loaderData }: Route.ComponentProps) {
               })}
             </TableBody>
           </Table>
-          <div className="text-right pr-2 mt-2 pt-2 border-t border-border text-sm">
-            <span className="font-semibold text-muted-foreground pr-4">
-              Average
-            </span>{" "}
-            {averagePoints}
+          <div className="pb-3 bg-muted">
+            <div className="text-right pr-2 mt-2 pt-2 border-t border-border text-sm">
+              <span className="font-semibold text-muted-foreground pr-4">
+                Average
+              </span>{" "}
+              {averagePoints}
+            </div>
           </div>
         </div>
       </div>

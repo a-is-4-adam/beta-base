@@ -9,6 +9,9 @@ export function getActiveRoutesWithLogsByLocationId(id: string) {
       },
       deletedAt: null,
     },
+    orderBy: {
+      createdAt: "desc",
+    },
     include: { Log: true },
   });
 }

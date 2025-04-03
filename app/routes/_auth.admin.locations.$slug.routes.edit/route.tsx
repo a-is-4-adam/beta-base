@@ -37,6 +37,7 @@ import {
 } from "@/components/external-tldraw-editor-context";
 import React, { memo } from "react";
 import {
+  AssetRecordType,
   createShapeId,
   DefaultKeyboardShortcutsDialog,
   DefaultKeyboardShortcutsDialogContent,
@@ -319,22 +320,19 @@ function Map({ setEditor }: { setEditor: (editor: Editor) => void }) {
   const routeId = searchParams.get("routeId");
   const loaderData = useLoaderData<typeof loader>();
 
-  const map = isJsonObject(loaderData.activeLocation.map)
-    ? loaderData.activeLocation.map
-    : undefined;
-
   const prevAdminTool = React.useRef<string | undefined>(undefined);
   const prevSelectTool = React.useRef<string | undefined>(undefined);
   const selectedRoute = React.useRef<TLShapeId | undefined>(undefined);
 
   const { open } = useDrawerContext();
 
+  const isMapCreated = React.useRef(false);
+
   return (
     <TldrawMap
       initialState="admin-hand-tool"
       shapeUtils={customShapesUtils}
       tools={customTools}
-      map={map}
       routes={loaderData.routes.map((r) => ({
         ...r,
         Log: [],
@@ -429,6 +427,53 @@ function Map({ setEditor }: { setEditor: (editor: Editor) => void }) {
         );
 
         setEditor(editor);
+
+        if (isMapCreated.current) {
+          return;
+        }
+        const assetId = AssetRecordType.createId();
+        const imageWidth = 770;
+        const imageHeight = 1000;
+
+        editor.createAssets([
+          {
+            id: assetId,
+            type: "image",
+            typeName: "asset",
+            props: {
+              name: "tldraw.png",
+              src: `/assets/${loaderData.activeLocation.name.toLowerCase()}.svg`, // You could also use a base64 encoded string here
+              w: imageWidth,
+              h: imageHeight,
+              mimeType: "image/svg+xml",
+              isAnimated: false,
+            },
+            meta: {},
+          },
+        ]);
+
+        editor.createShape({
+          type: "image",
+          x: (1000 - 770) / 2,
+          y: 0,
+          props: {
+            assetId,
+            w: imageWidth,
+            h: imageHeight,
+          },
+        });
+
+        const [mapShape] = editor.getCurrentPageShapes();
+
+        editor.updateShape({
+          id: mapShape.id,
+          type: "image",
+          isLocked: true,
+        });
+
+        editor.setCamera({ x: 0, y: 0, z: -10 });
+
+        isMapCreated.current = true;
       }}
     />
   );
@@ -513,6 +558,7 @@ function DrawerContent({ actionData }: DrawerContentProps) {
   return (
     <div className="px-4">
       <EditRouteForm
+        key={routeShape.id}
         actionData={actionData}
         id={routeShape.props.id}
         grade={routeShape.props.grade}
@@ -541,13 +587,15 @@ function EditRouteForm({
   const submit = useSubmit();
   const { editor } = useExternalTldrawEditor();
 
+  const loaderData = useLoaderData<typeof loader>();
+
   const form = useForm({
     defaultValues: {
       intent: "update",
       id,
       color: color,
       grade: grade,
-      sector: sector,
+      sector: sector ?? loaderData.routes.find((r) => r.sector)?.sector,
     },
     validators: {
       onSubmit: intentUpdateSchema,
@@ -621,7 +669,7 @@ function EditRouteForm({
                   id: createShapeId(id),
                   type: ROUTE_SHAPE,
                   props: {
-                    grade: value,
+                    grade: value.toString(),
                   },
                 });
               }}
@@ -638,6 +686,13 @@ function EditRouteForm({
               onBlur={field.handleBlur}
               onSelectionChange={(value) => {
                 field.handleChange(value.toString());
+                editor.updateShape({
+                  id: createShapeId(id),
+                  type: ROUTE_SHAPE,
+                  props: {
+                    sector: value.toString(),
+                  },
+                });
               }}
             />
           )}

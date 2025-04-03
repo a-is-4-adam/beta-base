@@ -22,7 +22,7 @@ const Breadcrumbs = <T extends object>({
 }: AriaBreadcrumbsProps<T>) => (
   <AriaBreadcrumbs
     className={cn(
-      "flex flex-wrap items-center gap-1.5 break-words text-sm text-muted-foreground sm:gap-2.5",
+      "flex flex-wrap items-center gap-1.5 break-words text-sm text-foreground sm:gap-2.5",
       className
     )}
     {...props}

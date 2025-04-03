@@ -66,7 +66,7 @@ export function AppSidebar({
               <SidebarMenuButton asChild>
                 <Link to="/switch-location" className="flex gap-2">
                   <ArrowRightLeftIcon />
-                  <span>Switch Location</span>
+                  <span>Switch location</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -88,7 +88,7 @@ export function AppSidebar({
                 <SidebarMenuButton asChild>
                   <Link to="/switch-organisation" className="flex gap-2">
                     <ArrowRightLeftIcon />
-                    <span>Switch Organisation</span>
+                    <span>Switch organisation</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -106,7 +106,7 @@ export function AppSidebar({
                   userButtonBox: "",
                   userButtonTrigger:
                     "p-2 w-full justify-between focus:shadow-none",
-                  userButtonOuterIdentifier: "text-sidebar-foreground",
+                  userButtonOuterIdentifier: "!text-foreground",
                 },
               }}
             />

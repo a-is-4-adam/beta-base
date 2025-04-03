@@ -90,7 +90,7 @@ export class RouteShapeUtil extends ShapeUtil<RouteShape> {
             <CheckIcon className="size-4" />
           </span>
         ) : (
-          <span className="absolute inset-0 flex justify-center items-center text-xs font-semibold uppercase">
+          <span className="absolute inset-0 flex justify-center items-center text-xs font-semibold uppercase text-background">
             {shape.props.grade}
           </span>
         )}

@@ -13,7 +13,6 @@ import { ROUTE_SHAPE } from "./tldraw/shape-utils/route-shape-util";
 import type { Log, Route } from "@prisma/client";
 
 type TldrawEditorProps = {
-  map: Record<string, unknown> | undefined;
   routes: Array<Route & { Log?: Log[] }>;
 } & Partial<
   Pick<
@@ -41,7 +40,6 @@ const components: TLComponents = {
 };
 
 export function Map({
-  map,
   routes,
   onMount,
   components: componentsProp = {},
@@ -50,13 +48,13 @@ export function Map({
   const store = React.useMemo(() => {
     return createTLStore({
       shapeUtils: [...defaultShapeUtils, ...(props.shapeUtils ?? [])],
-      snapshot: map,
+      // snapshot: map,
     });
     // TODO change the map prop to be a string
-  }, [JSON.stringify(map)]);
+  }, []);
 
   return (
-    <div className="absolute inset-0 [&_*.tl-background]:bg-white border-x border-zinc-950/5 ">
+    <div className="absolute inset-0 ">
       <Tldraw
         components={{
           ...components,
@@ -68,30 +66,28 @@ export function Map({
         }}
         store={store}
         onMount={(editor) => {
-          const geoShape = editor.getCurrentPageShapes().find(isGeoShape);
+          editor.user.updateUserPreferences({ colorScheme: "dark" });
 
-          if (geoShape) {
-            editor.setCameraOptions({
-              isLocked: false,
-              wheelBehavior: "pan",
-              panSpeed: 1,
-              zoomSpeed: 1,
-              zoomSteps: [1, 2, 4],
-              constraints: {
-                initialZoom: "fit-max",
-                baseZoom: "fit-max",
-                bounds: {
-                  x: 0,
-                  y: 0,
-                  w: Math.ceil(geoShape.props.w ?? 0),
-                  h: Math.ceil(geoShape.props.h ?? 0),
-                },
-                behavior: "contain",
-                padding: { x: 0, y: 0 },
-                origin: { x: 0.5, y: 0.5 },
+          editor.setCameraOptions({
+            isLocked: false,
+            wheelBehavior: "pan",
+            panSpeed: 1,
+            zoomSpeed: 1,
+            zoomSteps: [1, 2, 4],
+            constraints: {
+              initialZoom: "fit-max",
+              baseZoom: "fit-max",
+              bounds: {
+                x: 0,
+                y: 0,
+                w: Math.ceil(1000),
+                h: Math.ceil(1000),
               },
-            });
-          }
+              behavior: "contain",
+              padding: { x: 20, y: 20 },
+              origin: { x: 0.5, y: 0.5 },
+            },
+          });
           editor.createShapes(
             routes.map((route) => {
               const shapeId = createShapeId(route.id);
@@ -118,8 +114,4 @@ export function Map({
       />
     </div>
   );
-}
-
-function isGeoShape(shape: TLShape): shape is TLGeoShape {
-  return shape.type === "geo";
 }

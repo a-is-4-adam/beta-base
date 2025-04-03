@@ -56,7 +56,7 @@ const Column = ({ className, children, ...props }: ColumnProps) => (
   <AriaColumn
     className={composeRenderProps(className, (className) =>
       cn(
-        "h-12 text-left align-middle font-medium text-muted-foreground -outline-offset-2 data-[focus-visible]:outline-ring",
+        " text-left align-middle font-medium text-muted-foreground -outline-offset-2 data-[focus-visible]:outline-ring",
         className
       )
     )}
@@ -68,7 +68,7 @@ const Column = ({ className, children, ...props }: ColumnProps) => (
           role="presentation"
           tabIndex={-1}
           className={cn(
-            "flex h-10 flex-1 items-center gap-1 overflow-hidden rounded-md px-2",
+            "flex flex-1 items-center gap-1 overflow-hidden rounded-md px-2",
             allowsSorting &&
               "p-2 data-[hovered]:bg-accent data-[hovered]:text-accent-foreground",
             "focus-visible:outline-none  data-[focus-visible]:-outline-offset-2 data-[focus-visible]:outline-ring [&:has([slot=selection])]:pr-0"
