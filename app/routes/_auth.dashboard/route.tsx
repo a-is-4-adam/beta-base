@@ -199,7 +199,7 @@ export default function Route({
               isLocked: true,
             });
 
-            editor.setCamera({ x: 0, y: 0, z: -10 });
+            editor.setCamera({ x: 0, y: 0, z: 0.5 });
 
             isMapCreated.current = true;
           }}
@@ -376,7 +376,7 @@ function UpsertLogForm({
             type="submit"
             name={field.name}
             value={field.state.value}
-            variant={isActiveStatus ? "default" : "outline"}
+            variant={isActiveStatus ? "default" : "secondary"}
             size="lg"
             className="w-full gap-2"
           >

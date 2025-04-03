@@ -1,8 +1,29 @@
 import { cva, type VariantProps } from "class-variance-authority";
 
+export const routeColor = cva("", {
+  variants: {
+    color: {
+      yellow:
+        "[--route-bg:#FFE629] [--route-border:#ccb400] [--route-ring:#ccb400]",
+      teal: "[--route-bg:#5aadbb] [--route-border:#167687] [--route-ring:#167687] text-white [&+*]:text-white",
+      blue: "[--route-bg:#0090FF] [--route-border:#005799] [--route-ring:#005799]  text-white [&+*]:text-white",
+      purple:
+        "[--route-bg:#9049FF] [--route-border:#5600e0] [--route-ring:#5600e0]  text-white [&+*]:text-white",
+      pink: "[--route-bg:#f22c97] [--route-border:#9a0052] [--route-ring:#9a0052]  text-white [&+*]:text-white",
+      green:
+        "[--route-bg:#5BB98B] [--route-border:#347958] [--route-ring:#347958] text-white [&+*]:text-white",
+      red: "[--route-bg:#fb2c36] [--route-border:#be040d] [--route-ring:#be040d]  text-white [&+*]:text-white",
+      black:
+        "[--route-bg:#333] [--route-border:black] [--route-ring:black]  text-white [&+*]:text-white",
+      white:
+        "[--route-bg:white] [--route-border:#ccc] [--route-ring:#ccc]  data-[selected]:border-[#e6e6e6] data-[selected]:border-2",
+    },
+  },
+});
+
 export const routeVariants = cva(
   [
-    "relative size-10 border-2 rounded-full overflow-hidden group bg-[var(--route-bg)] border-[var(--route-border)] text-background font-bold",
+    "relative size-10 border-2 rounded-full overflow-hidden group bg-[--route-bg] text-background font-bold",
     "hover:cursor-pointer",
     "data-[selected]:ring-2 data-[selected]:ring-offset-2 data-[selected]:ring-offset-transparent data-[selected]:border-0 data-[selected]:ring-[var(--route-ring)] stroke-[var(--route-stroke)] stroke-2",
   ],

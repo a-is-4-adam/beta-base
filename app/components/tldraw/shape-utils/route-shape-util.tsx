@@ -1,4 +1,5 @@
-import { routeVariants } from "@/components/route-variants";
+import { routeColor, routeVariants } from "@/components/route-variants";
+import { cn } from "@/lib/utils";
 import type { Log } from "@prisma/client";
 import { CheckIcon } from "lucide-react";
 import {
@@ -86,7 +87,12 @@ export class RouteShapeUtil extends ShapeUtil<RouteShape> {
           ></circle>
         </svg>
         {shape.props.status ? (
-          <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold uppercase">
+          <span
+            className={cn(
+              "absolute inset-0 flex items-center justify-center text-xs font-semibold uppercase text-background",
+              routeColor({ color: shape.props.color })
+            )}
+          >
             <CheckIcon className="size-4" />
           </span>
         ) : (

@@ -14,7 +14,7 @@ export class MemberTool extends StateNode {
   static override initial = "idle";
   static override isLockable = false;
   static override children(): TLStateNodeConstructor[] {
-    return [Idle, Pointing];
+    return [Idle, Pointing, Dragging];
   }
 }
 
@@ -30,7 +30,7 @@ class Idle extends StateNode {
   }
 
   override onCancel() {
-    this.editor.setCurrentTool("select");
+    this.editor.setCurrentTool("member-tool");
   }
 }
 
@@ -57,8 +57,22 @@ export class Pointing extends StateNode {
     }
   }
 
+  override onLongPress() {
+    this.startDragging();
+  }
+
+  override onPointerMove(): void {
+    if (this.editor.inputs.isDragging) {
+      this.startDragging();
+    }
+  }
+
   override onPointerUp() {
     this.complete();
+  }
+
+  private startDragging() {
+    this.parent.transition("dragging");
   }
 
   override onCancel() {
@@ -74,6 +88,60 @@ export class Pointing extends StateNode {
   }
 
   private complete() {
+    this.parent.transition("idle");
+  }
+}
+
+class Dragging extends StateNode {
+  static override id = "dragging";
+
+  initialCamera = new Vec();
+
+  override onEnter() {
+    this.initialCamera = Vec.From(this.editor.getCamera());
+    this.update();
+  }
+
+  override onPointerMove() {
+    this.update();
+  }
+
+  override onPointerUp() {
+    this.complete();
+  }
+
+  override onCancel() {
+    this.parent.transition("idle");
+  }
+
+  override onComplete() {
+    this.complete();
+  }
+
+  private update() {
+    const { initialCamera, editor } = this;
+    const { currentScreenPoint, originScreenPoint } = editor.inputs;
+
+    const delta = Vec.Sub(currentScreenPoint, originScreenPoint).div(
+      editor.getZoomLevel()
+    );
+    if (delta.len2() === 0) return;
+    editor.setCamera(initialCamera.clone().add(delta));
+  }
+
+  private complete() {
+    const { editor } = this;
+    const { pointerVelocity } = editor.inputs;
+
+    const velocityAtPointerUp = Math.min(pointerVelocity.len(), 2);
+
+    if (velocityAtPointerUp > 0.1) {
+      this.editor.slideCamera({
+        speed: velocityAtPointerUp,
+        direction: pointerVelocity,
+      });
+    }
+
     this.parent.transition("idle");
   }
 }
