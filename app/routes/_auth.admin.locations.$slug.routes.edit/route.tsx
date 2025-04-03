@@ -464,6 +464,7 @@ function Map({ setEditor }: { setEditor: (editor: Editor) => void }) {
         });
 
         const [mapShape] = editor.getCurrentPageShapes();
+        editor.sendToBack([mapShape.id]);
 
         editor.updateShape({
           id: mapShape.id,

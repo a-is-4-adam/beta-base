@@ -36,6 +36,7 @@ export function ColorRadioGroup(
       <ColorRadioOption label="Red" value="red" color="red" />
       <ColorRadioOption label="Black" value="black" color="black" />
       <ColorRadioOption label="White" value="white" color="white" />
+      <ColorRadioOption label="Wood" value="wood" color="wood" />
     </RadioGroup>
   );
 }

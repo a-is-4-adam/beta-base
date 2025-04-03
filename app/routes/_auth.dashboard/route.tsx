@@ -192,6 +192,7 @@ export default function Route({
             });
 
             const [mapShape] = editor.getCurrentPageShapes();
+            editor.sendToBack([mapShape.id]);
 
             editor.updateShape({
               id: mapShape.id,

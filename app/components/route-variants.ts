@@ -17,6 +17,7 @@ export const routeColor = cva("", {
         "[--route-bg:#333] [--route-border:black] [--route-ring:black]  text-white [&+*]:text-white",
       white:
         "[--route-bg:white] [--route-border:#ccc] [--route-ring:#ccc]  data-[selected]:border-[#e6e6e6] data-[selected]:border-2",
+      wood: "[--route-bg:#bd6f13] [--route-border:#e4810c] [--route-ring:#e4810c] [--route-stroke:#e4810c] text-white [&+*]:text-white",
     },
   },
 });
@@ -44,6 +45,7 @@ export const routeVariants = cva(
           "[--route-bg:#333] [--route-border:black] [--route-ring:black]  text-white [&+*]:text-white [--route-stroke:black]",
         white:
           "[--route-bg:white] [--route-border:#ccc] [--route-ring:#ccc]  data-[selected]:border-[#e6e6e6] data-[selected]:border-2  [--route-stroke:#ccc]",
+        wood: "[--route-bg:#bd6f13] [--route-border:#e4810c] [--route-ring:#e4810c] [--route-stroke:#e4810c] text-white [&+*]:text-white",
       },
     },
   }

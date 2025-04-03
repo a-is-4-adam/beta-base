@@ -33,6 +33,10 @@ class Idle extends StateNode {
       hitFrameInside: true,
       hitInside: true,
     });
+    console.log(
+      "🚀 ~ Idle ~ overrideonPointerDown ~ existingShape:",
+      existingShape
+    );
 
     if (existingShape && isRouteShape(existingShape)) {
       this.editor.setSelectedShapes([existingShape.id]);
