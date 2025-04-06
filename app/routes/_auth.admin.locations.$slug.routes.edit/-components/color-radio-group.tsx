@@ -1,6 +1,7 @@
 import { routeVariants } from "@/components/route-variants";
 import { Label } from "@/components/ui/field";
 import { RadioGroup } from "@/components/ui/radio-group";
+import { cn } from "@/lib/utils";
 import type { VariantProps } from "class-variance-authority";
 import { Radio } from "react-aria-components";
 
@@ -15,7 +16,10 @@ function ColorRadioOption({
   className?: string;
 } & VariantProps<typeof routeVariants>) {
   return (
-    <Radio value={value} className={routeVariants({ color, className })}>
+    <Radio
+      value={value}
+      className={routeVariants({ color, className: cn("size-10", className) })}
+    >
       <Label className="sr-only">{label}</Label>
     </Radio>
   );

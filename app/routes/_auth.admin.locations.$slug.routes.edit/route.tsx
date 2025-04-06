@@ -1,10 +1,10 @@
 import { prismaClientHttp } from "@/db/db.server";
 import type { Route } from "./+types/route";
-import { getUserPublicMetadata } from "@/server/clerk";
 import {
   redirect,
   useFetcher,
   useLoaderData,
+  useParams,
   useSearchParams,
   useSubmit,
 } from "react-router";
@@ -17,27 +17,16 @@ import {
   useDrawerContext,
 } from "@/components/drawer-layout";
 import { Button } from "@/components/ui/button";
-import {
-  createRoute,
-  deleteRoute,
-  getActiveRoutesWithLogsByLocationId,
-  updateRoute,
-} from "@/db/routes.server";
+import { createRoute, deleteRoute, updateRoute } from "@/db/routes.server";
 import { z } from "zod";
 import { createServerValidate } from "@/lib/createServerValidate";
-import {
-  mergeForm,
-  useForm,
-  useStore,
-  useTransform,
-} from "@tanstack/react-form";
+import { mergeForm, useForm, useTransform } from "@tanstack/react-form";
 import {
   ExternalTldrawEditorProvider,
   useExternalTldrawEditor,
 } from "@/components/external-tldraw-editor-context";
-import React, { memo } from "react";
+import React from "react";
 import {
-  AssetRecordType,
   createShapeId,
   DefaultKeyboardShortcutsDialog,
   DefaultKeyboardShortcutsDialogContent,
@@ -48,7 +37,6 @@ import {
   useValue,
   type Editor,
   type TLComponents,
-  type TLShapeId,
   type TLUiAssetUrlOverrides,
   type TLUiOverrides,
 } from "tldraw";
@@ -66,7 +54,6 @@ import { GradeSelect } from "./-components/grade-select";
 import { SectorSelect } from "./-components/sector-select";
 import { cn } from "@/lib/utils";
 import { RouteBadge } from "@/components/route-badge";
-import { animate } from "framer-motion";
 
 const customShapesUtils = [PolygonShapeUtil, RouteShapeUtil];
 const customTools = [AdminRouteTool, AdminHandTool];
@@ -155,28 +142,41 @@ const customAssetUrls: TLUiAssetUrlOverrides = {
 };
 
 export const handle = {
-  breadcrumb: (loaderData) => `Edit ${loaderData.activeLocation.name} routes`,
+  breadcrumb: (loaderData) => `Edit ${loaderData.location.name} routes`,
 };
 
 export async function loader(args: Route.LoaderArgs) {
-  const publicMetadata = await getUserPublicMetadata(args);
+  const { slug } = args.params;
+  const clerkAuth = await getAuth(args);
 
-  if (!publicMetadata.activeLocationId) {
-    throw redirect("/switch-location");
+  const orgId = clerkAuth.orgId;
+
+  if (!slug || !orgId) {
+    return redirect("/admin");
   }
 
-  const activeLocation = await prismaClientHttp.location.findUnique({
-    where: { id: publicMetadata.activeLocationId },
+  const location = await prismaClientHttp.location.findUnique({
+    where: {
+      organizationId_slug: {
+        organizationId: orgId,
+        slug,
+      },
+    },
   });
 
-  if (!activeLocation) {
-    throw redirect("/switch-location");
-  }
-
-  const routes = await getActiveRoutesWithLogsByLocationId(activeLocation.id);
+  const routes = await prismaClientHttp.route.findMany({
+    where: {
+      locationOrganizationId: orgId,
+      locationSlug: slug,
+      deletedAt: null,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
 
   return {
-    activeLocation,
+    location,
     routes,
   };
 }
@@ -242,7 +242,6 @@ export async function action(args: Route.ActionArgs) {
     if (!auth.orgId) {
       throw new Response("Unauthorized", { status: 401 });
     }
-
     await deleteRoute(result.data.id);
 
     return null;
@@ -316,17 +315,15 @@ export default function Route({
 
 function Map({ setEditor }: { setEditor: (editor: Editor) => void }) {
   const submit = useSubmit();
+  const { slug } = useParams();
   const [searchParams] = useSearchParams();
   const routeId = searchParams.get("routeId");
   const loaderData = useLoaderData<typeof loader>();
 
   const prevAdminTool = React.useRef<string | undefined>(undefined);
   const prevSelectTool = React.useRef<string | undefined>(undefined);
-  const selectedRoute = React.useRef<TLShapeId | undefined>(undefined);
 
   const { open } = useDrawerContext();
-
-  const isMapCreated = React.useRef(false);
 
   return (
     <TldrawMap
@@ -337,6 +334,7 @@ function Map({ setEditor }: { setEditor: (editor: Editor) => void }) {
         ...r,
         Log: [],
       }))}
+      mapFileName={slug ?? ""}
       overrides={uiOverrides}
       components={tldrawComponents}
       assetUrls={customAssetUrls}
@@ -358,7 +356,7 @@ function Map({ setEditor }: { setEditor: (editor: Editor) => void }) {
             y: shape.y.toString(),
             grade: shape.props.grade,
             color: shape.props.color,
-            locationId: loaderData.activeLocation.id,
+            locationId: loaderData.location.id,
           };
 
           if (shape.props.sector) {
@@ -427,54 +425,6 @@ function Map({ setEditor }: { setEditor: (editor: Editor) => void }) {
         );
 
         setEditor(editor);
-
-        if (isMapCreated.current) {
-          return;
-        }
-        const assetId = AssetRecordType.createId();
-        const imageWidth = 770;
-        const imageHeight = 1000;
-
-        editor.createAssets([
-          {
-            id: assetId,
-            type: "image",
-            typeName: "asset",
-            props: {
-              name: "tldraw.png",
-              src: `/assets/${loaderData.activeLocation.name.toLowerCase()}.svg`, // You could also use a base64 encoded string here
-              w: imageWidth,
-              h: imageHeight,
-              mimeType: "image/svg+xml",
-              isAnimated: false,
-            },
-            meta: {},
-          },
-        ]);
-
-        editor.createShape({
-          type: "image",
-          x: (1000 - 770) / 2,
-          y: 0,
-          props: {
-            assetId,
-            w: imageWidth,
-            h: imageHeight,
-          },
-        });
-
-        const [mapShape] = editor.getCurrentPageShapes();
-        editor.sendToBack([mapShape.id]);
-
-        editor.updateShape({
-          id: mapShape.id,
-          type: "image",
-          isLocked: true,
-        });
-
-        editor.setCamera({ x: 0, y: 0, z: -10 });
-
-        isMapCreated.current = true;
       }}
     />
   );
@@ -685,6 +635,7 @@ function EditRouteForm({
               name={field.name}
               selectedKey={field.state.value}
               onBlur={field.handleBlur}
+              location={loaderData.location?.slug}
               onSelectionChange={(value) => {
                 field.handleChange(value.toString());
                 editor.updateShape({

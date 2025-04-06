@@ -3,9 +3,8 @@ import {
   Tldraw,
   createTLStore,
   type TLComponents,
-  type TLShape,
-  type TLGeoShape,
   createShapeId,
+  AssetRecordType,
 } from "tldraw";
 import React from "react";
 import { TldrawShapeIndicators } from "@/components/tldraw/shape-indicators";
@@ -14,6 +13,7 @@ import type { Log, Route } from "@prisma/client";
 
 type TldrawEditorProps = {
   routes: Array<Route & { Log?: Log[] }>;
+  mapFileName: string;
 } & Partial<
   Pick<
     React.ComponentPropsWithoutRef<typeof Tldraw>,
@@ -43,6 +43,7 @@ export function Map({
   routes,
   onMount,
   components: componentsProp = {},
+  mapFileName,
   ...props
 }: TldrawEditorProps) {
   const store = React.useMemo(() => {
@@ -88,6 +89,53 @@ export function Map({
               origin: { x: 0.5, y: 0.5 },
             },
           });
+
+          const assetId = AssetRecordType.createId();
+          const imageWidth = 770;
+          const imageHeight = 1000;
+
+          editor.createAssets([
+            {
+              id: assetId,
+              type: "image",
+              typeName: "asset",
+              props: {
+                name: "tldraw.png",
+                src: `/assets/${mapFileName}.svg`, // You could also use a base64 encoded string here
+                w: imageWidth,
+                h: imageHeight,
+                mimeType: "image/svg+xml",
+                isAnimated: false,
+              },
+              meta: {},
+            },
+          ]);
+
+          editor.createShape({
+            type: "image",
+            // Let's center the image in the editor
+            // x: (window.innerWidth - imageWidth) / 2,
+            // y: (window.innerHeight - imageHeight) / 2,
+            x: (1000 - 770) / 2,
+            y: 0,
+            props: {
+              assetId,
+              w: imageWidth,
+              h: imageHeight,
+            },
+          });
+
+          const [mapShape] = editor.getCurrentPageShapes();
+          editor.sendToBack([mapShape.id]);
+
+          editor.updateShape({
+            id: mapShape.id,
+            type: "image",
+            isLocked: true,
+          });
+
+          editor.setCamera({ x: 0, y: 0, z: -10 });
+
           editor.createShapes(
             routes.map((route) => {
               const shapeId = createShapeId(route.id);
@@ -107,7 +155,6 @@ export function Map({
               };
             })
           );
-
           onMount?.(editor);
         }}
         {...props}

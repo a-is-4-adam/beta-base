@@ -18,16 +18,14 @@ export async function getUserId(args: Parameters<typeof getAuth>[0]) {
   return auth.userId;
 }
 
-export async function getUserPublicMetadata(
-  args: Parameters<typeof getAuth>[0]
-) {
+export async function getUser(args: Parameters<typeof getAuth>[0]) {
   const userId = await getUserId(args);
 
   const clerkClient = getClerkClient();
 
   const user = await clerkClient.users.getUser(userId);
 
-  return user.publicMetadata;
+  return user;
 }
 
 export async function getUserOrganisationList(

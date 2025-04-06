@@ -32,7 +32,7 @@ const POINTS = {
 function orderLogs(logs: Awaited<ReturnType<typeof loader>>["logs"]) {
   return logs.sort((a, b) => {
     const pointsA = POINTS[a.route.grade] || 0;
-    const pointsB = POINTS[b.grade] || 0;
+    const pointsB = POINTS[b.route.grade] || 0;
 
     // First, sort by points (descending)
     if (pointsB !== pointsA) {
@@ -130,7 +130,7 @@ export default function Route({ loaderData }: Route.ComponentProps) {
           </div>
         </Progress>
         <span
-          className="relative block translate-y-1"
+          className="relative inline-block translate-y-1"
           style={{
             "--tw-translate-x": percentage + "%",
           }}

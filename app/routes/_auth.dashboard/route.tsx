@@ -1,6 +1,6 @@
 import { prismaClientHttp } from "@/db/db.server";
 import type { Route } from "./+types/route";
-import { getUserId, getUserPublicMetadata } from "@/server/clerk";
+import { getUserId, getUser } from "@/server/clerk";
 import { redirect, useFetcher, useSearchParams } from "react-router";
 import { Map } from "@/components/tldraw-editor";
 import "tldraw/tldraw.css";
@@ -44,7 +44,7 @@ const customShapesUtils = [PolygonShapeUtil, RouteShapeUtil];
 const customTools = [MemberTool];
 
 export async function loader(args: Route.LoaderArgs) {
-  const publicMetadata = await getUserPublicMetadata(args);
+  const { publicMetadata, id } = await getUser(args);
 
   if (!publicMetadata.activeLocationId) {
     throw redirect("/switch-location");
@@ -58,7 +58,10 @@ export async function loader(args: Route.LoaderArgs) {
     throw redirect("/switch-location");
   }
 
-  const routes = await getActiveRoutesWithLogsByLocationId(activeLocation.id);
+  const routes = await getActiveRoutesWithLogsByLocationId(
+    activeLocation.id,
+    id
+  );
 
   return {
     activeLocation,
@@ -135,8 +138,6 @@ export default function Route({
   const routeId = searchParams.get("routeId");
   const [editor, setEditor] = React.useState<Editor | undefined>(undefined);
 
-  const isMapCreated = useRef(false);
-
   return (
     <DrawerProvider>
       <div className="relative h-full">
@@ -145,6 +146,7 @@ export default function Route({
           shapeUtils={customShapesUtils}
           tools={customTools}
           routes={loaderData.routes}
+          mapFileName={loaderData.activeLocation.slug}
           onMount={(editor) => {
             if (routeId) {
               const shapeId = createShapeId(routeId);
@@ -152,57 +154,6 @@ export default function Route({
             }
 
             setEditor(editor);
-
-            if (isMapCreated.current) {
-              return;
-            }
-            const assetId = AssetRecordType.createId();
-            const imageWidth = 770;
-            const imageHeight = 1000;
-
-            editor.createAssets([
-              {
-                id: assetId,
-                type: "image",
-                typeName: "asset",
-                props: {
-                  name: "tldraw.png",
-                  src: `/assets/${loaderData.activeLocation.name.toLowerCase()}.svg`, // You could also use a base64 encoded string here
-                  w: imageWidth,
-                  h: imageHeight,
-                  mimeType: "image/svg+xml",
-                  isAnimated: false,
-                },
-                meta: {},
-              },
-            ]);
-
-            editor.createShape({
-              type: "image",
-              // Let's center the image in the editor
-              // x: (window.innerWidth - imageWidth) / 2,
-              // y: (window.innerHeight - imageHeight) / 2,
-              x: (1000 - 770) / 2,
-              y: 0,
-              props: {
-                assetId,
-                w: imageWidth,
-                h: imageHeight,
-              },
-            });
-
-            const [mapShape] = editor.getCurrentPageShapes();
-            editor.sendToBack([mapShape.id]);
-
-            editor.updateShape({
-              id: mapShape.id,
-              type: "image",
-              isLocked: true,
-            });
-
-            editor.setCamera({ x: 0, y: 0, z: -10 });
-
-            isMapCreated.current = true;
           }}
         />
       </div>

@@ -15,15 +15,11 @@ import {
 import { typographyVariants } from "@/components/ui/typography";
 import { CheckIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  getClerkClient,
-  getUserId,
-  getUserPublicMetadata,
-} from "@/server/clerk";
+import { getClerkClient, getUser, getUserId } from "@/server/clerk";
 
 export async function loader(args: Route.LoaderArgs) {
-  const [publicMetadata, locations] = await Promise.all([
-    getUserPublicMetadata(args),
+  const [user, locations] = await Promise.all([
+    getUser(args),
     prismaClientHttp.location.findMany(),
   ]);
 
@@ -53,7 +49,7 @@ export async function loader(args: Route.LoaderArgs) {
   return {
     locations,
     organisations,
-    activeLocationId: publicMetadata.activeLocationId,
+    activeLocationId: user.publicMetadata.activeLocationId,
   };
 }
 

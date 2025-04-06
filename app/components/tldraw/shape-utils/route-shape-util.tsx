@@ -13,7 +13,7 @@ import {
   type TLShape,
 } from "tldraw";
 
-export const DEFAULT_ROUTE_RADIUS = 20;
+export const DEFAULT_ROUTE_RADIUS = 15;
 export const DEFAULT_ROUTE_COLOR = "yellow";
 export const DEFAULT_ROUTE_GRADE = "VB";
 export const ROUTE_SHAPE = "route";
@@ -75,7 +75,9 @@ export class RouteShapeUtil extends ShapeUtil<RouteShape> {
       <HTMLContainer className="relative">
         <svg
           // @ts-expect-error TODO fix this
-          className={routeVariants({ color: shape.props.color })}
+          className={routeVariants({
+            color: shape.props.color,
+          })}
           width={shape.props.radius * 2}
           height={shape.props.radius * 2}
           fill="var(--route-bg)"

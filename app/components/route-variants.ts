@@ -24,7 +24,7 @@ export const routeColor = cva("", {
 
 export const routeVariants = cva(
   [
-    "relative size-10 border-2 rounded-full overflow-hidden group bg-[var(--route-bg)] text-background font-bold border-[var(--route-border)]",
+    "relative border-2 rounded-full overflow-hidden group bg-[var(--route-bg)] text-background font-bold border-[var(--route-border)]",
     "hover:cursor-pointer",
     "data-[selected]:ring-2 data-[selected]:ring-offset-2 data-[selected]:ring-offset-transparent data-[selected]:border-0 data-[selected]:ring-[var(--route-ring)] stroke-[var(--route-stroke)] stroke-2",
   ],
