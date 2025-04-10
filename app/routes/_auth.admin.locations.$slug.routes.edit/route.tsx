@@ -143,6 +143,7 @@ const customAssetUrls: TLUiAssetUrlOverrides = {
 
 export const handle = {
   breadcrumb: (loaderData) => `Edit ${loaderData.location.name} routes`,
+  isScrollLocked: true,
 };
 
 export async function loader(args: Route.LoaderArgs) {

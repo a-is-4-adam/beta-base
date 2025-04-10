@@ -6,6 +6,7 @@ import {
   Scripts,
   ScrollRestoration,
   useHref,
+  useMatches,
   useNavigate,
   type NavigateOptions,
 } from "react-router";
@@ -17,6 +18,7 @@ import type { Route } from "./+types/root";
 import "./app.css";
 import { ClerkProvider } from "@clerk/react-router";
 import { RouterProvider } from "react-aria-components";
+import { cn } from "./lib/utils";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -36,6 +38,10 @@ export async function loader(args: Route.LoaderArgs) {
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const matches = useMatches();
+
+  const isScrollLocked = matches.some((match) => match.handle?.isScrollLocked);
+
   return (
     <html lang="en">
       <head>
@@ -47,7 +53,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Meta />
         <Links />
       </head>
-      <body className={`bg-background text-foreground antialiased`}>
+      <body
+        className={cn(`bg-background text-foreground antialiased`, {
+          "overflow-hidden": isScrollLocked,
+        })}
+      >
         {children}
         <ScrollRestoration />
         <Scripts />

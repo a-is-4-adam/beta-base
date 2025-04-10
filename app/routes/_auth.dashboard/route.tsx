@@ -128,6 +128,7 @@ export async function action(args: Route.ActionArgs) {
 
 export const handle = {
   breadcrumb: (loaderData) => loaderData.activeLocation.name,
+  isScrollLocked: true,
 };
 
 export default function Route({

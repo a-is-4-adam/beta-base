@@ -84,7 +84,6 @@ function DrawerLayoutInner({ children, preview }: DrawerLayoutProps) {
 
   const previewHeight =
     (previewRef?.getBoundingClientRect().height ?? 0) + DRAG_HANDLE_HEIGHT;
-  console.log("🚀 ~ DrawerLayoutInner ~ previewHeight:", previewHeight);
 
   return (
     <>
@@ -129,11 +128,6 @@ function DrawerLayoutInner({ children, preview }: DrawerLayoutProps) {
         <div className="flex-1">
           <div
             ref={(ref) => {
-              console.log(
-                "🚀 ~ DrawerLayoutInner ~ ref:",
-                ref,
-                ref?.getBoundingClientRect().height
-              );
               if (!ref) {
                 return;
               }
