@@ -140,28 +140,31 @@ export default function Route({
 
   return (
     <DrawerProvider>
-      <div className="relative h-full">
-        <Map
-          initialState="member-tool"
-          shapeUtils={customShapesUtils}
-          tools={customTools}
-          routes={loaderData.routes}
-          mapFileName={loaderData.activeLocation.slug}
-          onMount={(editor) => {
-            if (routeId) {
-              const shapeId = createShapeId(routeId);
-              editor.setSelectedShapes([shapeId]);
-            }
+      <div className="h-full flex flex-col overflow-hidden">
+        <div className="h-full relative flex-1">
+          <Map
+            initialState="member-tool"
+            shapeUtils={customShapesUtils}
+            tools={customTools}
+            routes={loaderData.routes}
+            mapFileName={loaderData.activeLocation.slug}
+            onMount={(editor) => {
+              if (routeId) {
+                const shapeId = createShapeId(routeId);
+                editor.setSelectedShapes([shapeId]);
+              }
 
-            setEditor(editor);
-          }}
-        />
+              setEditor(editor);
+            }}
+          />
+        </div>
+
+        {editor ? (
+          <ExternalTldrawEditorProvider value={{ editor }}>
+            <DrawerLayout preview={<DrawerPreview actionData={actionData} />} />
+          </ExternalTldrawEditorProvider>
+        ) : null}
       </div>
-      {editor ? (
-        <ExternalTldrawEditorProvider value={{ editor }}>
-          <DrawerLayout preview={<DrawerPreview actionData={actionData} />} />
-        </ExternalTldrawEditorProvider>
-      ) : null}
     </DrawerProvider>
   );
 }

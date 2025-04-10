@@ -301,14 +301,16 @@ export default function Route({
 
   return (
     <DrawerProvider>
-      <div className="relative h-full">
-        <Map setEditor={setEditor} />
+      <div className="h-full flex flex-col overflow-hidden ">
+        <div className="h-full relative flex-1">
+          <Map setEditor={setEditor} />
+        </div>
+        {editor ? (
+          <ExternalTldrawEditorProvider value={{ editor }}>
+            <EditRouteDrawer actionData={actionData} />
+          </ExternalTldrawEditorProvider>
+        ) : null}
       </div>
-      {editor ? (
-        <ExternalTldrawEditorProvider value={{ editor }}>
-          <EditRouteDrawer actionData={actionData} />
-        </ExternalTldrawEditorProvider>
-      ) : null}
     </DrawerProvider>
   );
 }

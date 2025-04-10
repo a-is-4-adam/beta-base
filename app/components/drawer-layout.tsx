@@ -84,6 +84,7 @@ function DrawerLayoutInner({ children, preview }: DrawerLayoutProps) {
 
   const previewHeight =
     (previewRef?.getBoundingClientRect().height ?? 0) + DRAG_HANDLE_HEIGHT;
+  console.log("🚀 ~ DrawerLayoutInner ~ previewHeight:", previewHeight);
 
   return (
     <>
@@ -100,11 +101,16 @@ function DrawerLayoutInner({ children, preview }: DrawerLayoutProps) {
         }}
         transition={staticTransition}
         drag="y"
-        dragConstraints={{ top: 0, bottom: window.innerHeight - previewHeight }}
+        dragConstraints={{
+          top: 0,
+          bottom: window.innerHeight - previewHeight,
+        }}
         onDragEnd={(e, { offset, velocity }) => {
           if (offset.y > window.innerHeight * 0.75 || velocity.y > 10) {
             if (!isOpen) {
-              animate(scope.current, { y: window.innerHeight - previewHeight });
+              animate(scope.current, {
+                y: window.innerHeight - previewHeight,
+              });
             }
             close();
           } else {
@@ -119,12 +125,15 @@ function DrawerLayoutInner({ children, preview }: DrawerLayoutProps) {
           previewRef ? "visible" : "invisible"
         )}
       >
-        <div className="flex-shrink-0">
-          <DragHandle />
-        </div>
+        <DragHandle />
         <div className="flex-1">
           <div
             ref={(ref) => {
+              console.log(
+                "🚀 ~ DrawerLayoutInner ~ ref:",
+                ref,
+                ref?.getBoundingClientRect().height
+              );
               if (!ref) {
                 return;
               }
@@ -144,7 +153,7 @@ function DrawerLayoutInner({ children, preview }: DrawerLayoutProps) {
 function DragHandle() {
   return (
     <div
-      className="relative flex items-center justify-center w-full"
+      className="relative flex flex-shrink-0 items-center justify-center w-full"
       style={{ height: `${DRAG_HANDLE_HEIGHT}px` }}
     >
       <div className="w-12 rounded-full h-1.5 bg-gray-400" />

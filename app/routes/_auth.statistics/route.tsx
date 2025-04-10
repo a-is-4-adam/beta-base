@@ -52,10 +52,12 @@ function averageTopClimbs(
   const topClimbs = orderedLogs.slice(0, topN);
 
   const totalPoints = topClimbs.reduce((sum, log) => {
-    return sum + (POINTS[log.route.grade] || 0);
+    return (
+      sum + (POINTS[log.route.grade] || 0) + (log.status === "FLASH" ? 10 : 0)
+    );
   }, 0);
 
-  return totalPoints / topClimbs.length;
+  return Math.floor(totalPoints / topClimbs.length);
 }
 
 function getClosestGrade(averagePoints: number): string {
@@ -132,7 +134,7 @@ export default function Route({ loaderData }: Route.ComponentProps) {
         <span
           className="relative inline-block translate-y-1"
           style={{
-            "--tw-translate-x": percentage + "%",
+            left: percentage + "%",
           }}
         >
           <span className="relative inline-block  transform -translate-x-1/2  mb-2 bg-primary text-xs text-primary-foreground text-center rounded-sm px-2 py-1">
@@ -141,8 +143,8 @@ export default function Route({ loaderData }: Route.ComponentProps) {
           </span>
         </span>
       </div>
-      <div className="flex flex-col gap-4 lg:flex-row">
-        <div className="border border-border rounded-xl overflow-hidden">
+      <div className=" -mx-4 md:mx-0">
+        <div className="border border-b-0 border-border rounded-tr-xl rounded-tl-xl overflow-x-auto">
           <Table aria-label="Files" selectionMode="multiple">
             <TableHeader className="bg-muted [&_th]:py-3">
               <Column isRowHeader className="pl-2">
@@ -175,29 +177,33 @@ export default function Route({ loaderData }: Route.ComponentProps) {
                         {log.route.grade}
                       </RouteBadge>
                     </Cell>
-                    <Cell className="capitalize">{log.route.sector}</Cell>
+                    <Cell className="capitalize text-nowrap">
+                      {log.route.sector}
+                    </Cell>
                     <Cell className="text-right">{60 - daysDifference}</Cell>
                     <Cell className="text-right">
                       {log.status === "FLASH" ? 10 : 0}
                     </Cell>
                     <Cell className="text-right pr-4">
-                      {POINTS[log.route.grade]}
+                      {POINTS[log.route.grade] +
+                        (log.status === "FLASH" ? 10 : 0)}
                     </Cell>
                   </Row>
                 );
               })}
             </TableBody>
           </Table>
-          <div className="pb-3 bg-muted">
-            <div className="text-right pr-2 mt-2 pt-2 border-t border-border text-sm">
-              <span className="font-semibold text-muted-foreground pr-4">
-                Average
-              </span>{" "}
-              {averagePoints}
-            </div>
+        </div>
+        <div className="pb-3 bg-muted px-2 border border-t-0 border-border rounded-br-xl rounded-bl-xl">
+          <div className="text-right pr-2 pt-2 border-t border-border text-sm">
+            <span className="font-semibold text-muted-foreground pr-4">
+              Average
+            </span>{" "}
+            {averagePoints}
           </div>
         </div>
       </div>
+      {/* <div style={{ width: "400px", height: "200px", background: "red" }}></div> */}
     </div>
   );
 }

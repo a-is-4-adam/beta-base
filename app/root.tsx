@@ -40,13 +40,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <html lang="en">
       <head>
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"
+        />
         <Meta />
         <Links />
       </head>
-      <body
-        className={`bg-background text-foreground antialiased overflow-hidden`}
-      >
+      <body className={`bg-background text-foreground antialiased`}>
         {children}
         <ScrollRestoration />
         <Scripts />
