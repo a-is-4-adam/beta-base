@@ -11,7 +11,7 @@ export const routeColor = cva("", {
         "[--route-bg:#9049FF] [--route-border:#5600e0] [--route-ring:#5600e0]  text-white [&+*]:text-white",
       pink: "[--route-bg:#f22c97] [--route-border:#9a0052] [--route-ring:#9a0052]  text-white [&+*]:text-white",
       green:
-        "[--route-bg:#5BB98B] [--route-border:#347958] [--route-ring:#347958] text-white [&+*]:text-white",
+        "[--route-bg:#64ce5c] [--route-border:#347958] [--route-ring:#347958] text-white [&+*]:text-white",
       red: "[--route-bg:#fb2c36] [--route-border:#be040d] [--route-ring:#be040d]  text-white [&+*]:text-white",
       black:
         "[--route-bg:#333] [--route-border:black] [--route-ring:black]  text-white [&+*]:text-white",

@@ -13,7 +13,7 @@ import {
   TableHeader,
 } from "@/components/ui/table";
 
-const POINTS = {
+const POINTS: Record<string, number> = {
   VB: 200,
   "V0-": 350,
   V0: 400,
@@ -71,7 +71,7 @@ function getClosestGrade(averagePoints: number): string {
 }
 
 function percentageToNextGrade(averagePoints: number): {
-  grade: string;
+  grade: string | null;
   percentage: number;
 } {
   const closest = getClosestGrade(averagePoints);
@@ -134,7 +134,7 @@ export default function Route({ loaderData }: Route.ComponentProps) {
         <span
           className="relative inline-block translate-y-1"
           style={{
-            left: percentage + "%",
+            left: `${percentage}%`,
           }}
         >
           <span className="relative inline-block  transform -translate-x-1/2  mb-2 bg-primary text-xs text-primary-foreground text-center rounded-sm px-2 py-1">
@@ -163,13 +163,19 @@ export default function Route({ loaderData }: Route.ComponentProps) {
               {orderedLogs.slice(0, 10).map((log) => {
                 const givenDate = new Date(log.createdAt);
                 const currentDate = new Date();
+
+                // Calculate the difference in milliseconds
                 const timeDifference =
                   currentDate.getTime() - givenDate.getTime();
 
-                // Convert the time difference from milliseconds to days
-                const daysDifference = Math.floor(
+                // Convert the time difference to days
+                const daysPassed = Math.floor(
                   timeDifference / (1000 * 60 * 60 * 24)
                 );
+
+                // Calculate days remaining in the 60-day period
+                const daysRemaining = Math.max(0, 60 - daysPassed);
+
                 return (
                   <Row key={log.route.id}>
                     <Cell className="pl-4">
@@ -180,7 +186,7 @@ export default function Route({ loaderData }: Route.ComponentProps) {
                     <Cell className="capitalize text-nowrap">
                       {log.route.sector}
                     </Cell>
-                    <Cell className="text-right">{60 - daysDifference}</Cell>
+                    <Cell className="text-right">{daysRemaining}</Cell>
                     <Cell className="text-right">
                       {log.status === "FLASH" ? 10 : 0}
                     </Cell>
